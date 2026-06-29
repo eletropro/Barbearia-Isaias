@@ -5,13 +5,15 @@
 
 export enum UserRole {
   ADMIN = 'admin',
-  EMPLOYEE = 'employee'
+  EMPLOYEE = 'employee',
+  CUSTOMER = 'customer'
 }
 
 export interface User {
   id: string;
   name: string;
   email: string;
+  password?: string;
   role: UserRole;
   phone?: string;
   photoUrl?: string;
@@ -177,6 +179,13 @@ export interface CompanyConfig {
   whatsapp: string;
   instagram: string;
   address: string;
+  razaoSocial?: string;
+  cnpj?: string;
+  inscricaoEstadual?: string;
+  inscricaoMunicipal?: string;
+  taxRegime?: string;
+  invoiceEnabled?: boolean;
+  invoiceApiToken?: string;
   workingHours: {
     weekday: string;
     hours: string;

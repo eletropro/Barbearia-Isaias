@@ -28,7 +28,7 @@ import {
 
 // State and Types
 import { BarberStateEngine } from './barberState';
-import { User, UserRole, Client, Product, Service, Appointment, Sale, StockMovement, CashRegister, LoyaltyConfig, SystemLog } from './types';
+import { User, UserRole, Client, Product, Service, Appointment, Sale, StockMovement, CashRegister, LoyaltyConfig, SystemLog, CompanyConfig } from './types';
 
 // Views
 import DashboardView from './components/DashboardView';
@@ -41,6 +41,7 @@ import FinanceAndReportsView from './components/FinanceAndReportsView';
 import CRMAndLoyaltyView from './components/CRMAndLoyaltyView';
 import SettingsView from './components/SettingsView';
 import CustomerPortalView from './components/CustomerPortalView';
+import AuthView from './components/AuthView';
 
 export default function App() {
   // Navigation & Theme
@@ -71,6 +72,7 @@ export default function App() {
   });
   const [systemLogs, setSystemLogs] = useState<SystemLog[]>([]);
   const [autoSync, setAutoSync] = useState<boolean>(true);
+  const [companyConfig, setCompanyConfig] = useState<CompanyConfig>(() => BarberStateEngine.getCompanyConfig());
 
   // Modal Notification Center
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
@@ -78,15 +80,7 @@ export default function App() {
 
   // Sync engine updates to state
   const syncWithEngine = () => {
-    // Check and set default logged in user if not authenticated
-    let user = BarberStateEngine.getCurrentUser();
-    if (!user) {
-      const users = BarberStateEngine.getUsers();
-      user = users[0] || null;
-      if (user) {
-        BarberStateEngine.login(user.email, user.role, true);
-      }
-    }
+    const user = BarberStateEngine.getCurrentUser();
 
     setCurrentUser(user);
     setBarbers([...BarberStateEngine.getUsers()]);
@@ -97,6 +91,7 @@ export default function App() {
     setSales([...BarberStateEngine.getSales()]);
     setStockMovements([...BarberStateEngine.getStockMovements()]);
     setCashRegister({ ...BarberStateEngine.getCashRegister() });
+    setCompanyConfig(BarberStateEngine.getCompanyConfig());
     
     // Map SecurityLog to SystemLog
     const mappedLogs: SystemLog[] = BarberStateEngine.getLogs().map(l => ({
@@ -106,6 +101,11 @@ export default function App() {
       date: l.timestamp
     }));
     setSystemLogs(mappedLogs);
+  };
+
+  const handleSaveCompanyConfig = (config: CompanyConfig) => {
+    BarberStateEngine.saveCompanyConfig(config);
+    syncWithEngine();
   };
 
   // Switch role helper for testing role constraints easily
@@ -223,6 +223,33 @@ export default function App() {
     syncWithEngine();
   }, []);
 
+  if (!currentUser) {
+    return <AuthView onLoginSuccess={syncWithEngine} darkMode={darkMode} setDarkMode={setDarkMode} />;
+  }
+
+  if (currentUser.role === UserRole.CUSTOMER) {
+    return (
+      <div className={`min-h-screen font-sans antialiased transition-colors duration-300 ${darkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50/50 text-slate-900'}`} id="app_root">
+        <div className="p-4 md:p-8 max-w-5xl mx-auto">
+          <CustomerPortalView
+            appointments={appointments}
+            clients={clients}
+            services={services}
+            barbers={barbers}
+            loyaltyConfig={loyaltyConfig}
+            currentUser={currentUser}
+            onSaveAppointment={handleSaveAppointment}
+            onSaveClient={handleSaveClient}
+            onLogout={() => {
+              BarberStateEngine.logout();
+              syncWithEngine();
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`min-h-screen font-sans antialiased transition-colors duration-300 ${darkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50/50 text-slate-900'}`} id="app_root">
       
@@ -234,44 +261,15 @@ export default function App() {
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}>
           {/* Header branding block */}
-          <div className="p-6 border-b border-white/5 space-y-4">
+          <div className="p-6 border-b border-white/5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Scissors className="h-6 w-6 text-purple-400 animate-pulse" />
-                <span className="font-extrabold text-sm tracking-widest font-mono text-purple-300 uppercase">BARBEARIA ISAIAS</span>
+                <span className="font-extrabold text-sm tracking-widest font-mono text-purple-300 uppercase">{companyConfig.name}</span>
               </div>
               <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden text-white/60 hover:text-white">
                 <X className="h-5 w-5" />
               </button>
-            </div>
-
-            {/* Quick role switcher for testing convenience */}
-            <div className="bg-slate-800 p-2.5 rounded-xl border border-white/5 space-y-1.5">
-              <span className="text-[9px] font-bold text-gray-400 uppercase block tracking-wider">Simular Nível de Acesso</span>
-              <div className="grid grid-cols-2 gap-1.5 text-[9px] font-bold">
-                <button
-                  type="button"
-                  onClick={() => handleSwitchRole(UserRole.ADMIN)}
-                  className={`py-1 rounded-lg transition-all ${
-                    currentUser?.role === UserRole.ADMIN
-                      ? 'bg-purple-600 text-white shadow-sm'
-                      : 'bg-slate-700/50 text-gray-300 hover:bg-slate-700'
-                  }`}
-                >
-                  ADMIN
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSwitchRole(UserRole.EMPLOYEE)}
-                  className={`py-1 rounded-lg transition-all ${
-                    currentUser?.role === UserRole.EMPLOYEE
-                      ? 'bg-purple-600 text-white shadow-sm'
-                      : 'bg-slate-700/50 text-gray-300 hover:bg-slate-700'
-                  }`}
-                >
-                  FUNCIONÁRIO
-                </button>
-              </div>
             </div>
           </div>
 
@@ -309,46 +307,52 @@ export default function App() {
             >
               <Users className="h-4 w-4" /> Clientes & CRM
             </button>
-            <button
-              onClick={() => { setActiveTab('estoque'); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-                activeTab === 'estoque' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <Package className="h-4 w-4" /> Estoque & Catálogo
-            </button>
-            <button
-              onClick={() => { setActiveTab('servicos'); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-                activeTab === 'servicos' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <Scissors className="h-4 w-4" /> Serviços Menu
-            </button>
-            <button
-              onClick={() => { setActiveTab('fidelidade'); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-                activeTab === 'fidelidade' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <Gift className="h-4 w-4" /> Campanhas & Cashback
-            </button>
-            <button
-              onClick={() => { setActiveTab('financas'); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-                activeTab === 'financas' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <DollarSign className="h-4 w-4" /> Caixa & Finanças
-            </button>
-            <button
-              onClick={() => { setActiveTab('configuracoes'); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-                activeTab === 'configuracoes' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <Settings className="h-4 w-4" /> Configs & Firebase
-            </button>
+
+            {currentUser?.role === UserRole.ADMIN && (
+              <>
+                <button
+                  onClick={() => { setActiveTab('estoque'); setIsSidebarOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
+                    activeTab === 'estoque' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <Package className="h-4 w-4" /> Estoque & Catálogo
+                </button>
+                <button
+                  onClick={() => { setActiveTab('servicos'); setIsSidebarOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
+                    activeTab === 'servicos' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <Scissors className="h-4 w-4" /> Serviços Menu
+                </button>
+                <button
+                  onClick={() => { setActiveTab('fidelidade'); setIsSidebarOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
+                    activeTab === 'fidelidade' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <Gift className="h-4 w-4" /> Campanhas & Cashback
+                </button>
+                <button
+                  onClick={() => { setActiveTab('financas'); setIsSidebarOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
+                    activeTab === 'financas' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <DollarSign className="h-4 w-4" /> Caixa & Finanças
+                </button>
+                <button
+                  onClick={() => { setActiveTab('configuracoes'); setIsSidebarOpen(false); }}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
+                    activeTab === 'configuracoes' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <Settings className="h-4 w-4" /> Configs & Firebase
+                </button>
+              </>
+            )}
+
             <button
               onClick={() => { setActiveTab('portal_cliente'); setIsSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
@@ -376,7 +380,8 @@ export default function App() {
 
             <button
               onClick={() => {
-                alert('Login deslogado com sucesso! Redirecionando para interface simplificada.');
+                BarberStateEngine.logout();
+                syncWithEngine();
               }}
               className="text-gray-500 hover:text-white p-1 rounded-lg"
               title="Logout"
@@ -558,7 +563,9 @@ export default function App() {
                   currentUser={currentUser}
                   barbers={barbers}
                   systemLogs={systemLogs}
+                  companyConfig={companyConfig}
                   onSaveBarber={handleSaveBarber}
+                  onSaveCompanyConfig={handleSaveCompanyConfig}
                   onTriggerBackup={handleTriggerBackup}
                   onRestoreBackup={handleRestoreBackup}
                   autoSync={autoSync}

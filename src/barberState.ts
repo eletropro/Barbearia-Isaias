@@ -24,7 +24,8 @@ const INITIAL_USERS: User[] = [
   {
     id: 'user_isaias',
     name: 'Isaias Barbosa (Admin)',
-    email: 'isaias@barbearia.com.br',
+    email: 'admin@barbearia.com.br',
+    password: 'admin',
     role: UserRole.ADMIN,
     phone: '(11) 99999-1111',
     photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
@@ -36,6 +37,7 @@ const INITIAL_USERS: User[] = [
     id: 'user_lucas',
     name: 'Lucas Silva',
     email: 'lucas@barbearia.com.br',
+    password: '123',
     role: UserRole.EMPLOYEE,
     phone: '(11) 98888-2222',
     photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
@@ -47,6 +49,7 @@ const INITIAL_USERS: User[] = [
     id: 'user_thiago',
     name: 'Thiago Oliveira',
     email: 'thiago@barbearia.com.br',
+    password: '123',
     role: UserRole.EMPLOYEE,
     phone: '(11) 97777-3333',
     photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
@@ -92,142 +95,17 @@ const INITIAL_PRODUCTS: Product[] = [
     supplier: 'Sobrebarba',
     buyPrice: 18.50,
     sellPrice: 39.90,
-    quantity: 4, // Alerta de estoque baixo!
+    quantity: 15,
     minStock: 6,
     photoUrl: 'https://images.unsplash.com/photo-1626475760590-169996614f85?auto=format&fit=crop&q=80&w=300',
     barcode: '7891415161718',
     description: 'Hidrata profundamente a pele e os pelos da barba, deixando-os macios, brilhantes e perfumados.',
     status: 'ativo',
     createdAt: '2026-06-15'
-  },
-  {
-    id: 'prod_shampoo',
-    name: 'Shampoo Anticaspa e Energizante 250ml',
-    category: 'Shampoo',
-    code: 'SH-003',
-    supplier: 'Men Essence',
-    buyPrice: 15.00,
-    sellPrice: 32.00,
-    quantity: 25,
-    minStock: 8,
-    photoUrl: 'https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?auto=format&fit=crop&q=80&w=300',
-    barcode: '7891819202122',
-    description: 'Limpeza refrescante com ativos naturais que combatem a caspa e fortalecem o couro cabeludo.',
-    status: 'ativo',
-    createdAt: '2026-06-16'
-  },
-  {
-    id: 'prod_gel',
-    name: 'Gel Fixador Ultra Forte 250g',
-    category: 'Finalizador',
-    code: 'GF-004',
-    supplier: 'Booster Corp',
-    buyPrice: 8.00,
-    sellPrice: 19.90,
-    quantity: 3, // Alerta de estoque baixo!
-    minStock: 5,
-    photoUrl: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&q=80&w=300',
-    barcode: '7892223242526',
-    description: 'Gel cola de altíssima fixação, ideal para penteados blindados e moicanos.',
-    status: 'ativo',
-    createdAt: '2026-06-16'
   }
 ];
 
-const INITIAL_CLIENTS: Client[] = [
-  {
-    id: 'cli_marcos',
-    name: 'Marcos de Souza',
-    phone: '(11) 98123-4567',
-    cpfCnpj: '123.456.789-00',
-    email: 'marcos.souza@gmail.com',
-    birthDate: '1992-06-25', // Fez aniversário recentemente
-    address: 'Av. Paulista, 1000 - Bela Vista',
-    city: 'São Paulo',
-    notes: 'Gosta de corte degradê navalhado bem curto nas laterais e barba bem desenhada.',
-    photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
-    vehicleType: 'carro',
-    vehicleModel: 'Corolla',
-    vehicleColor: 'Prata',
-    vehiclePlate: 'BRA2E19',
-    attachments: [
-      { id: 'att_1', name: 'ficha_anamnese_capilar.jpg', url: '#', size: '1.2 MB', date: '2026-06-10' }
-    ],
-    loyaltyPoints: 120,
-    cashbackAmount: 15.50,
-    totalSpent: 480.00,
-    lastVisit: '2026-06-20',
-    nextRecommendedReturn: '2026-07-05',
-    createdAt: '2026-01-10'
-  },
-  {
-    id: 'cli_rodrigo',
-    name: 'Rodrigo Mello (VIP)',
-    phone: '(11) 99111-2233',
-    cpfCnpj: '234.567.890-11',
-    email: 'rodrigo.mello@outlook.com',
-    birthDate: '1988-10-12',
-    address: 'Rua Augusta, 450 - Consolação',
-    city: 'São Paulo',
-    notes: 'Cliente VIP. Faz hidratação e barba semanalmente. Gosta de café expresso.',
-    photoUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=200',
-    vehicleType: 'moto',
-    vehicleModel: 'CB 500F',
-    vehicleColor: 'Preta',
-    vehiclePlate: 'ABC1D23',
-    attachments: [],
-    loyaltyPoints: 340,
-    cashbackAmount: 42.00,
-    totalSpent: 1250.00,
-    lastVisit: '2026-06-27', // Ontem
-    nextRecommendedReturn: '2026-07-11',
-    createdAt: '2026-02-15'
-  },
-  {
-    id: 'cli_vitor',
-    name: 'Vitor Fernandes (Inativo)',
-    phone: '(11) 97755-4422',
-    cpfCnpj: '345.678.901-22',
-    email: 'vitor.fernandes@yahoo.com.br',
-    birthDate: '1995-03-04',
-    address: 'Rua Pamplona, 789 - Jardim Paulista',
-    city: 'São Paulo',
-    notes: 'Corta cabelo tradicional na tesoura. Não faz barba.',
-    photoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
-    vehicleType: 'carro',
-    vehicleModel: 'Jeep Compass',
-    vehicleColor: 'Branco',
-    vehiclePlate: 'XYZ9A87',
-    attachments: [],
-    loyaltyPoints: 50,
-    cashbackAmount: 5.00,
-    totalSpent: 150.00,
-    lastVisit: '2026-04-10', // Mais de 30 dias sem retornar!
-    nextRecommendedReturn: '2026-05-10',
-    createdAt: '2026-03-20'
-  },
-  {
-    id: 'cli_gustavo',
-    name: 'Gustavo Santos',
-    phone: '(11) 99888-7766',
-    cpfCnpj: '456.789.012-33',
-    email: 'gustavo.santos@gmail.com',
-    birthDate: '2001-06-29', // Faz aniversário HOJE! (2026-06-28 ou 29 dependendo do fuso, vamos celebrar aniversário!)
-    address: 'Rua Bela Cintra, 1200 - Consolação',
-    city: 'São Paulo',
-    notes: 'Sempre pede risquinho na sobrancelha e na lateral do cabelo.',
-    photoUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=200',
-    vehicleType: 'outro',
-    vehicleModel: 'Patinete Elétrico',
-    attachments: [],
-    loyaltyPoints: 80,
-    cashbackAmount: 10.00,
-    totalSpent: 320.00,
-    lastVisit: '2026-06-12',
-    nextRecommendedReturn: '2026-06-26', // Passou o retorno
-    createdAt: '2026-04-01'
-  }
-];
+const INITIAL_CLIENTS: Client[] = [];
 
 const INITIAL_COMPANY: CompanyConfig = {
   name: 'Barbearia Isaias',
@@ -235,6 +113,13 @@ const INITIAL_COMPANY: CompanyConfig = {
   whatsapp: '(11) 99999-1111',
   instagram: '@barbeariaisaias_oficial',
   address: 'Alameda Lorena, 1500 - Cerqueira César, São Paulo - SP',
+  razaoSocial: 'Isaias Barbosa Barber Shop LTDA',
+  cnpj: '12.345.678/0001-99',
+  inscricaoEstadual: '111.222.333.444',
+  inscricaoMunicipal: '555.666.777-8',
+  taxRegime: 'Simples Nacional',
+  invoiceEnabled: true,
+  invoiceApiToken: 'token_demonstracao_api_nfe_99381832',
   workingHours: [
     { weekday: 'Segunda-feira', hours: '09:00 às 18:00', closed: false },
     { weekday: 'Terça-feira', hours: '09:00 às 20:00', closed: false },
@@ -246,234 +131,21 @@ const INITIAL_COMPANY: CompanyConfig = {
   ]
 };
 
-// Generates some random appointments for today, yesterday, and future
-const INITIAL_APPOINTMENTS: Appointment[] = [
-  {
-    id: 'app_1',
-    clientId: 'cli_marcos',
-    clientName: 'Marcos de Souza',
-    clientPhone: '(11) 98123-4567',
-    barberId: 'user_lucas',
-    barberName: 'Lucas Silva',
-    serviceIds: ['srv_corte', 'srv_barba'],
-    serviceNames: ['Corte Social/Degradê', 'Barba com Toalha Quente'],
-    date: '2026-06-28', // HOJE
-    time: '10:00',
-    status: 'finalizado',
-    notes: 'Deixou gorjeta.',
-    priceTotal: 90
-  },
-  {
-    id: 'app_2',
-    clientId: 'cli_rodrigo',
-    clientName: 'Rodrigo Mello (VIP)',
-    clientPhone: '(11) 99111-2233',
-    barberId: 'user_isaias',
-    barberName: 'Isaias Barbosa (Admin)',
-    serviceIds: ['srv_combo', 'srv_hidratacao'],
-    serviceNames: ['Combo Corte + Barba', 'Hidratação Capilar'],
-    date: '2026-06-28', // HOJE
-    time: '14:30',
-    status: 'em_atendimento',
-    priceTotal: 115
-  },
-  {
-    id: 'app_3',
-    clientId: 'cli_gustavo',
-    clientName: 'Gustavo Santos',
-    clientPhone: '(11) 99888-7766',
-    barberId: 'user_thiago',
-    barberName: 'Thiago Oliveira',
-    serviceIds: ['srv_corte', 'srv_sobrancelha'],
-    serviceNames: ['Corte Social/Degradê', 'Sobrancelha Navalha'],
-    date: '2026-06-28', // HOJE
-    time: '17:00',
-    status: 'confirmado',
-    priceTotal: 70
-  },
-  {
-    id: 'app_4',
-    clientId: 'cli_marcos',
-    clientName: 'Marcos de Souza',
-    clientPhone: '(11) 98123-4567',
-    barberId: 'user_lucas',
-    barberName: 'Lucas Silva',
-    serviceIds: ['srv_combo'],
-    serviceNames: ['Combo Corte + Barba'],
-    date: '2026-06-29', // AMANHÃ
-    time: '09:00',
-    status: 'agendado',
-    priceTotal: 80
-  },
-  {
-    id: 'app_blocked_1',
-    clientId: '',
-    clientName: 'BLOQUEADO',
-    clientPhone: '',
-    barberId: 'user_isaias',
-    barberName: 'Isaias Barbosa (Admin)',
-    serviceIds: [],
-    serviceNames: [],
-    date: '2026-06-28',
-    time: '12:00',
-    status: 'confirmado',
-    isBlockedTime: true,
-    notes: 'Horário de almoço',
-    priceTotal: 0
-  }
-];
+// Clean, real collections for production use
+const INITIAL_APPOINTMENTS: Appointment[] = [];
 
-// Seed some historical sales to populate charts
-const INITIAL_SALES: Sale[] = [
-  {
-    id: 'sale_1',
-    saleNumber: 'OS-1001',
-    clientId: 'cli_marcos',
-    clientName: 'Marcos de Souza',
-    employeeId: 'user_lucas',
-    employeeName: 'Lucas Silva',
-    items: [
-      { type: 'service', itemId: 'srv_corte', itemName: 'Corte Social/Degradê', quantity: 1, price: 50 },
-      { type: 'service', itemId: 'srv_barba', itemName: 'Barba com Toalha Quente', quantity: 1, price: 40 },
-      { type: 'product', itemId: 'prod_pomada', itemName: 'Pomada Modeladora Efeito Matte 150g', quantity: 1, price: 45 }
-    ],
-    paymentMethod: 'pix',
-    subtotal: 135,
-    discount: 10,
-    total: 125,
-    cashbackEarned: 6.25,
-    pointsEarned: 12,
-    status: 'concluido',
-    notes: 'Cliente pagou com desconto de aniversário.',
-    date: '2026-06-25'
-  },
-  {
-    id: 'sale_2',
-    saleNumber: 'OS-1002',
-    clientId: 'cli_rodrigo',
-    clientName: 'Rodrigo Mello (VIP)',
-    employeeId: 'user_isaias',
-    employeeName: 'Isaias Barbosa (Admin)',
-    items: [
-      { type: 'service', itemId: 'srv_combo', itemName: 'Combo Corte + Barba', quantity: 1, price: 80 },
-      { type: 'product', itemId: 'prod_oleo', itemName: 'Óleo para Barba Wood & Spice 30ml', quantity: 1, price: 39.90 }
-    ],
-    paymentMethod: 'cartao_credito',
-    subtotal: 119.90,
-    discount: 0,
-    total: 119.90,
-    cashbackEarned: 11.99,
-    pointsEarned: 23,
-    status: 'concluido',
-    date: '2026-06-26'
-  },
-  {
-    id: 'sale_3',
-    saleNumber: 'OS-1003',
-    clientId: 'cli_marcos',
-    clientName: 'Marcos de Souza',
-    employeeId: 'user_thiago',
-    employeeName: 'Thiago Oliveira',
-    items: [
-      { type: 'service', itemId: 'srv_progressiva', itemName: 'Progressiva Masculina', quantity: 1, price: 120 }
-    ],
-    paymentMethod: 'dinheiro',
-    subtotal: 120,
-    discount: 15,
-    total: 105,
-    cashbackEarned: 5.25,
-    pointsEarned: 10,
-    status: 'concluido',
-    date: '2026-06-27'
-  },
-  {
-    id: 'sale_4',
-    saleNumber: 'OS-1004',
-    clientId: 'cli_rodrigo',
-    clientName: 'Rodrigo Mello (VIP)',
-    employeeId: 'user_lucas',
-    employeeName: 'Lucas Silva',
-    items: [
-      { type: 'service', itemId: 'srv_corte', itemName: 'Corte Social/Degradê', quantity: 1, price: 50 },
-      { type: 'product', itemId: 'prod_shampoo', itemName: 'Shampoo Anticaspa e Energizante 250ml', quantity: 1, price: 32 }
-    ],
-    paymentMethod: 'pix',
-    subtotal: 82,
-    discount: 0,
-    total: 82,
-    cashbackEarned: 4.10,
-    pointsEarned: 8,
-    status: 'concluido',
-    date: '2026-06-28' // HOJE
-  }
-];
+const INITIAL_SALES: Sale[] = [];
 
 const INITIAL_CASH: CashRegister = {
-  isOpen: true,
-  openedAt: '2026-06-28T08:00:00',
-  openedBy: 'Isaias Barbosa (Admin)',
-  initialBalance: 200.00,
-  currentBalance: 407.00, // 200 initial + 125 sale1(pix) + 82 sale4(pix) Wait, credit cards and cash is calculated
-  movements: [
-    {
-      id: 'mov_1',
-      type: 'entrada_venda',
-      amount: 125,
-      description: 'Venda OS-1001 - Marcos de Souza',
-      date: '2026-06-25T11:30:00',
-      user: 'Lucas Silva'
-    },
-    {
-      id: 'mov_2',
-      type: 'entrada_venda',
-      amount: 105,
-      description: 'Venda OS-1003 - Marcos de Souza (Em dinheiro)',
-      date: '2026-06-27T16:00:00',
-      user: 'Thiago Oliveira'
-    },
-    {
-      id: 'mov_3',
-      type: 'entrada_venda',
-      amount: 82,
-      description: 'Venda OS-1004 - Rodrigo Mello (PIX)',
-      date: '2026-06-28T10:45:00',
-      user: 'Lucas Silva'
-    }
-  ]
+  isOpen: false,
+  openedAt: undefined,
+  openedBy: undefined,
+  initialBalance: 0.00,
+  currentBalance: 0.00,
+  movements: []
 };
 
-const INITIAL_LOGS: SecurityLog[] = [
-  {
-    id: 'log_1',
-    userId: 'user_isaias',
-    userName: 'Isaias Barbosa (Admin)',
-    role: 'admin',
-    action: 'Login Efetuado',
-    category: 'auth',
-    details: 'Login bem sucedido do administrador via IP 192.168.15.10',
-    timestamp: '2026-06-28T08:01:00'
-  },
-  {
-    id: 'log_2',
-    userId: 'user_isaias',
-    userName: 'Isaias Barbosa (Admin)',
-    role: 'admin',
-    action: 'Abertura de Caixa',
-    category: 'financeiro',
-    details: 'Abertura de caixa registrada com saldo inicial de R$ 200,00',
-    timestamp: '2026-06-28T08:02:00'
-  },
-  {
-    id: 'log_3',
-    userId: 'user_lucas',
-    userName: 'Lucas Silva',
-    role: 'employee',
-    action: 'Criação de Venda',
-    category: 'vendas',
-    details: 'Registro da venda OS-1004 para Rodrigo Mello (VIP), valor total: R$ 82,00',
-    timestamp: '2026-06-28T10:45:10'
-  }
-];
+const INITIAL_LOGS: SecurityLog[] = [];
 
 const STORAGE_KEYS = {
   CURRENT_USER: 'barber_current_user',
@@ -573,17 +245,11 @@ export class BarberStateEngine {
   }
 
   // Write operations and Actions
-  static login(email: string, roleRequested: UserRole, remainConnected: boolean): User | null {
+  static login(email: string, passwordRequested: string, remainConnected: boolean): User | null {
     const users = this.getUsers();
-    // Filter matching email or role for fast demo login
-    let matchedUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    
-    // If we type a role but no exact user, find first user matching that role for seamless demo experience
-    if (!matchedUser) {
-      matchedUser = users.find(u => u.role === roleRequested);
-    }
+    const matchedUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
 
-    if (matchedUser) {
+    if (matchedUser && matchedUser.password === passwordRequested) {
       saveToStorage(STORAGE_KEYS.CURRENT_USER, matchedUser);
       saveToStorage(STORAGE_KEYS.REMAIN_CONNECTED, remainConnected);
       this.addLog(
@@ -597,6 +263,85 @@ export class BarberStateEngine {
       return matchedUser;
     }
     return null;
+  }
+
+  static signUp(name: string, email: string, passwordRequested: string, roleRequested: UserRole, phone?: string): User {
+    const users = this.getUsers();
+    
+    // Check if user already exists
+    const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (existing) {
+      throw new Error('Este e-mail já está cadastrado!');
+    }
+
+    const newUser: User = {
+      id: `user_${Date.now()}`,
+      name,
+      email,
+      password: passwordRequested,
+      role: roleRequested,
+      phone,
+      targetMonth: roleRequested === UserRole.ADMIN ? 8000 : 5000,
+      bonusAmount: roleRequested === UserRole.ADMIN ? 500 : 300,
+      color: roleRequested === UserRole.ADMIN ? '#a855f7' : (roleRequested === UserRole.EMPLOYEE ? '#06b6d4' : '#10b981')
+    };
+
+    users.push(newUser);
+    saveToStorage(STORAGE_KEYS.USERS, users);
+
+    // If role is CUSTOMER, also add them to CLIENTS table so their appointments work flawlessly
+    if (roleRequested === UserRole.CUSTOMER) {
+      const clients = this.getClients();
+      const newClient: Client = {
+        id: `cli_${newUser.id}`, // link client ID with user ID
+        name,
+        phone: phone || '',
+        cpfCnpj: '',
+        email,
+        birthDate: '',
+        address: '',
+        city: '',
+        notes: 'Cliente cadastrado via portal autônomo.',
+        loyaltyPoints: 0,
+        cashbackAmount: 0.00,
+        totalSpent: 0.00,
+        attachments: [],
+        createdAt: new Date().toISOString().split('T')[0]
+      };
+      clients.push(newClient);
+      saveToStorage(STORAGE_KEYS.CLIENTS, clients);
+    }
+
+    this.addLog(
+      newUser.id,
+      newUser.name,
+      newUser.role,
+      'Cadastro Efetuado',
+      'auth',
+      `Novo usuário cadastrado com sucesso. Cargo: ${roleRequested.toUpperCase()}`
+    );
+
+    return newUser;
+  }
+
+  static recoverPassword(email: string, newPasswordRequested: string): boolean {
+    const users = this.getUsers();
+    const idx = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+    if (idx !== -1) {
+      users[idx].password = newPasswordRequested;
+      saveToStorage(STORAGE_KEYS.USERS, users);
+
+      this.addLog(
+        users[idx].id,
+        users[idx].name,
+        users[idx].role,
+        'Recuperação de Senha',
+        'auth',
+        'Senha redefinida pelo usuário com sucesso.'
+      );
+      return true;
+    }
+    return false;
   }
 
   static logout(): void {

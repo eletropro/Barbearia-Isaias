@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -31,8 +31,10 @@ interface CustomerPortalViewProps {
   services: Service[];
   barbers: BarberUser[];
   loyaltyConfig: LoyaltyConfig;
+  currentUser?: any;
   onSaveAppointment: (app: any) => void;
   onSaveClient: (client: any) => void;
+  onLogout?: () => void;
 }
 
 export default function CustomerPortalView({
@@ -41,8 +43,10 @@ export default function CustomerPortalView({
   services,
   barbers,
   loyaltyConfig,
+  currentUser,
   onSaveAppointment,
-  onSaveClient
+  onSaveClient,
+  onLogout
 }: CustomerPortalViewProps) {
   // Navigation inside portal
   const [portalTab, setPortalTab] = useState<'agendar' | 'meu_perfil'>('agendar');
@@ -77,6 +81,25 @@ export default function CustomerPortalView({
   const [searchPhone, setSearchPhone] = useState('');
   const [searchedClient, setSearchedClient] = useState<Client | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+
+  // Auto-fill and lookup if customer is authenticated
+  useEffect(() => {
+    if (currentUser && currentUser.role === 'customer') {
+      const clientObj = clients.find(c => c.id === `cli_${currentUser.id}` || c.email.toLowerCase() === currentUser.email.toLowerCase());
+      if (clientObj) {
+        setSearchedClient(clientObj);
+        setHasSearched(true);
+        setCustName(clientObj.name);
+        setCustPhone(clientObj.phone);
+        setCustEmail(clientObj.email);
+        setCustCpf(clientObj.cpfCnpj);
+      } else {
+        setCustName(currentUser.name);
+        setCustEmail(currentUser.email);
+        setCustPhone(currentUser.phone || '');
+      }
+    }
+  }, [currentUser, clients]);
 
   const hoursList = [
     '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
@@ -317,7 +340,16 @@ export default function CustomerPortalView({
                 <span className="font-extrabold text-xs tracking-wider font-mono">ISAIAS AGENDA</span>
               </div>
               <div className="flex items-center gap-2 text-[10px] text-gray-400 font-mono">
-                <span>● 5G Online</span>
+                {currentUser ? (
+                  <button
+                    onClick={onLogout}
+                    className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-[9px] font-bold transition-all shadow"
+                  >
+                    Sair da Conta
+                  </button>
+                ) : (
+                  <span>● 5G Online</span>
+                )}
               </div>
             </header>
 

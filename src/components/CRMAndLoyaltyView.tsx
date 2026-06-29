@@ -19,6 +19,7 @@ import {
   Smartphone
 } from 'lucide-react';
 import { Client, LoyaltyConfig, User, UserRole } from '../types';
+import { BarberStateEngine } from '../barberState';
 
 interface CRMAndLoyaltyViewProps {
   currentUser: User | null;
@@ -275,7 +276,7 @@ export default function CRMAndLoyaltyView({
 
             <div className="bg-emerald-950/40 p-4 rounded-2xl border border-emerald-900/60 text-slate-100 text-xs space-y-2 relative">
               <span className="absolute bottom-2 right-3 text-[8px] text-emerald-400 font-mono">14:15 ✔✔</span>
-              <p className="font-semibold text-emerald-400">📱 WhatsApp Barbearia Isaias</p>
+              <p className="font-semibold text-emerald-400">📱 WhatsApp {BarberStateEngine.getCompanyConfig().name}</p>
               <p className="text-[11px] leading-relaxed italic text-slate-300">
                 "{campaignTemplate.replace('{CLIENT_NAME}', clients[0]?.name || 'Carlos')}"
               </p>

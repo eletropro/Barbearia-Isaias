@@ -14,15 +14,19 @@ import {
   CheckCircle,
   Unlock,
   Lock,
-  Smartphone
+  Smartphone,
+  Building,
+  FileText
 } from 'lucide-react';
-import { User, UserRole, SystemLog } from '../types';
+import { User, UserRole, SystemLog, CompanyConfig } from '../types';
 
 interface SettingsViewProps {
   currentUser: User | null;
   barbers: User[];
   systemLogs: SystemLog[];
+  companyConfig: CompanyConfig;
   onSaveBarber: (barber: any) => void;
+  onSaveCompanyConfig: (config: CompanyConfig) => void;
   onTriggerBackup: () => void;
   onRestoreBackup: () => void;
   autoSync: boolean;
@@ -33,17 +37,35 @@ export default function SettingsView({
   currentUser,
   barbers,
   systemLogs,
+  companyConfig,
   onSaveBarber,
+  onSaveCompanyConfig,
   onTriggerBackup,
   onRestoreBackup,
   autoSync,
   onToggleAutoSync
 }: SettingsViewProps) {
-  const [activeTab, setActiveTab] = useState<'usuarios' | 'funcionamento' | 'firebase' | 'logs'>('usuarios');
+  const [activeTab, setActiveTab] = useState<'usuarios' | 'empresa' | 'funcionamento' | 'firebase' | 'logs'>('usuarios');
   
   // Backup loading animation simulation
   const [isBackupLoading, setIsBackupLoading] = useState(false);
   const [backupSuccessMessage, setBackupSuccessMessage] = useState('');
+
+  // Company Profile states
+  const [companyName, setCompanyName] = useState(companyConfig?.name || '');
+  const [companyPhone, setCompanyPhone] = useState(companyConfig?.phone || '');
+  const [companyWhatsapp, setCompanyWhatsapp] = useState(companyConfig?.whatsapp || '');
+  const [companyInstagram, setCompanyInstagram] = useState(companyConfig?.instagram || '');
+  const [companyAddress, setCompanyAddress] = useState(companyConfig?.address || '');
+  
+  // Invoice states
+  const [companyRazaoSocial, setCompanyRazaoSocial] = useState(companyConfig?.razaoSocial || '');
+  const [companyCnpj, setCompanyCnpj] = useState(companyConfig?.cnpj || '');
+  const [companyIe, setCompanyIe] = useState(companyConfig?.inscricaoEstadual || '');
+  const [companyIm, setCompanyIm] = useState(companyConfig?.inscricaoMunicipal || '');
+  const [companyTaxRegime, setCompanyTaxRegime] = useState(companyConfig?.taxRegime || 'Simples Nacional');
+  const [companyInvoiceEnabled, setCompanyInvoiceEnabled] = useState(companyConfig?.invoiceEnabled ?? true);
+  const [companyInvoiceToken, setCompanyInvoiceToken] = useState(companyConfig?.invoiceApiToken || '');
 
   // Barber form states
   const [isBarberFormOpen, setIsBarberFormOpen] = useState(false);
@@ -166,6 +188,16 @@ export default function SettingsView({
           Equipe / Barbeiros
         </button>
         <button
+          onClick={() => setActiveTab('empresa')}
+          className={`pb-3 px-4 text-sm border-b-2 transition-all ${
+            activeTab === 'empresa'
+              ? 'border-purple-600 text-purple-600'
+              : 'border-transparent text-gray-500 hover:text-gray-800'
+          }`}
+        >
+          Empresa & Notas Fiscais
+        </button>
+        <button
           onClick={() => setActiveTab('funcionamento')}
           className={`pb-3 px-4 text-sm border-b-2 transition-all ${
             activeTab === 'funcionamento'
@@ -268,6 +300,220 @@ export default function SettingsView({
             ))}
           </div>
         </div>
+      )}
+
+      {activeTab === 'empresa' && (
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          onSaveCompanyConfig({
+            ...companyConfig,
+            name: companyName,
+            phone: companyPhone,
+            whatsapp: companyWhatsapp,
+            instagram: companyInstagram,
+            address: companyAddress,
+            razaoSocial: companyRazaoSocial,
+            cnpj: companyCnpj,
+            inscricaoEstadual: companyIe,
+            inscricaoMunicipal: companyIm,
+            taxRegime: companyTaxRegime,
+            invoiceEnabled: companyInvoiceEnabled,
+            invoiceApiToken: companyInvoiceToken
+          });
+          alert('Configurações da empresa e dados para emissão de notas fiscais salvos com sucesso!');
+        }} className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* General Company Information */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm p-6 space-y-4">
+              <div className="flex items-center gap-2 border-b border-gray-50 dark:border-slate-800 pb-3">
+                <Building className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100">Perfil & Dados Gerais</h3>
+                  <p className="text-[11px] text-gray-500">Informações públicas de contato e localização da barbearia.</p>
+                </div>
+              </div>
+
+              <div className="space-y-3.5">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">Nome Fantasia (Exibido no App) *</label>
+                  <input
+                    type="text"
+                    required
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    placeholder="Ex: Barbearia Estilo Real"
+                    className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-slate-700 dark:bg-slate-800 focus:outline-none text-slate-900 dark:text-slate-100"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">Telefone Comercial</label>
+                    <input
+                      type="text"
+                      value={companyPhone}
+                      onChange={(e) => setCompanyPhone(e.target.value)}
+                      placeholder="(11) 3255-9000"
+                      className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-slate-700 dark:bg-slate-800 focus:outline-none text-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">WhatsApp de Contato</label>
+                    <input
+                      type="text"
+                      value={companyWhatsapp}
+                      onChange={(e) => setCompanyWhatsapp(e.target.value)}
+                      placeholder="(11) 99999-1111"
+                      className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-slate-700 dark:bg-slate-800 focus:outline-none text-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">Perfil do Instagram</label>
+                  <input
+                    type="text"
+                    value={companyInstagram}
+                    onChange={(e) => setCompanyInstagram(e.target.value)}
+                    placeholder="@barbearia_exemplo"
+                    className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-slate-700 dark:bg-slate-800 focus:outline-none text-slate-900 dark:text-slate-100"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">Endereço Completo</label>
+                  <textarea
+                    value={companyAddress}
+                    onChange={(e) => setCompanyAddress(e.target.value)}
+                    placeholder="Ex: Alameda Lorena, 1500 - Cerqueira César, São Paulo - SP"
+                    rows={2}
+                    className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-slate-700 dark:bg-slate-800 focus:outline-none text-slate-900 dark:text-slate-100 resize-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Invoicing and Billing Data */}
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-slate-800 shadow-sm p-6 space-y-4">
+              <div className="flex items-center gap-2 border-b border-gray-50 dark:border-slate-800 pb-3">
+                <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-slate-100">Emissão de Notas Fiscais</h3>
+                  <p className="text-[11px] text-gray-500">Dados cadastrais para emissão de NFS-e / NF-e.</p>
+                </div>
+              </div>
+
+              <div className="space-y-3.5">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">Razão Social *</label>
+                  <input
+                    type="text"
+                    required={companyInvoiceEnabled}
+                    value={companyRazaoSocial}
+                    onChange={(e) => setCompanyRazaoSocial(e.target.value)}
+                    placeholder="Ex: Nome Completo ou Razão Social LTDA"
+                    className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-slate-700 dark:bg-slate-800 focus:outline-none text-slate-900 dark:text-slate-100"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">CNPJ *</label>
+                  <input
+                    type="text"
+                    required={companyInvoiceEnabled}
+                    value={companyCnpj}
+                    onChange={(e) => setCompanyCnpj(e.target.value)}
+                    placeholder="00.000.000/0001-00"
+                    className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-slate-700 dark:bg-slate-800 focus:outline-none text-slate-900 dark:text-slate-100"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">Inscrição Estadual</label>
+                    <input
+                      type="text"
+                      value={companyIe}
+                      onChange={(e) => setCompanyIe(e.target.value)}
+                      placeholder="Isento ou Número IE"
+                      className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-slate-700 dark:bg-slate-800 focus:outline-none text-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">Inscrição Municipal</label>
+                    <input
+                      type="text"
+                      value={companyIm}
+                      onChange={(e) => setCompanyIm(e.target.value)}
+                      placeholder="Número IM"
+                      className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-slate-700 dark:bg-slate-800 focus:outline-none text-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">Regime Tributário</label>
+                    <select
+                      value={companyTaxRegime}
+                      onChange={(e) => setCompanyTaxRegime(e.target.value)}
+                      className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-slate-700 dark:bg-slate-800 focus:outline-none text-slate-900 dark:text-slate-100"
+                    >
+                      <option value="Simples Nacional">Simples Nacional</option>
+                      <option value="MEI">MEI (Microempreendedor)</option>
+                      <option value="Lucro Presumido">Lucro Presumido</option>
+                      <option value="Lucro Real">Lucro Real</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">Emissão Ativa</label>
+                    <div className="flex items-center mt-2.5 gap-2">
+                      <input
+                        type="checkbox"
+                        id="invoice_enabled"
+                        checked={companyInvoiceEnabled}
+                        onChange={(e) => setCompanyInvoiceEnabled(e.target.checked)}
+                        className="h-4 w-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                      />
+                      <label htmlFor="invoice_enabled" className="text-xs text-gray-600 dark:text-slate-300 cursor-pointer font-semibold select-none">
+                        Faturamento Automatizado
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 dark:text-slate-300 mb-1">API Token de Integração NFS-e</label>
+                  <input
+                    type="password"
+                    value={companyInvoiceToken}
+                    onChange={(e) => setCompanyInvoiceToken(e.target.value)}
+                    placeholder="Chave privada de integração para notas"
+                    className="w-full p-2.5 text-xs rounded-xl border border-gray-200 dark:border-slate-700 dark:bg-slate-800 focus:outline-none font-mono text-slate-900 dark:text-slate-100"
+                  />
+                  <span className="text-[10px] text-gray-400 mt-1 block">Conecta o caixa ao emissor da prefeitura municipal de forma segura.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Save Button for Company settings */}
+          {isAdmin ? (
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-2"
+              >
+                <CheckCircle className="h-4 w-4" /> Salvar Configurações da Empresa
+              </button>
+            </div>
+          ) : (
+            <div className="bg-red-50 text-red-800 p-3 rounded-xl text-xs font-semibold">
+              Somente administradores podem alterar as configurações da empresa e dados para emissão de notas fiscais.
+            </div>
+          )}
+        </form>
       )}
 
       {activeTab === 'funcionamento' && (

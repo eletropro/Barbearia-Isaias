@@ -27,6 +27,7 @@ import {
   Users
 } from 'lucide-react';
 import { Client, Attachment, User, UserRole } from '../types';
+import { BarberStateEngine } from '../barberState';
 
 interface ClientsViewProps {
   currentUser: User | null;
@@ -146,10 +147,11 @@ export default function ClientsView({
   const sendWhatsAppCampaign = (client: Client, type: 'agendamento' | 'aniversario' | 'retorno' | 'promocao') => {
     let msg = '';
     const nameF = client.name.split(' ')[0];
+    const companyName = BarberStateEngine.getCompanyConfig().name;
     if (type === 'agendamento') {
-      msg = `Olá ${nameF}! Confirmamos o seu agendamento na Barbearia Isaias para amanhã. Estamos te esperando! 💈`;
+      msg = `Olá ${nameF}! Confirmamos o seu agendamento na ${companyName} para amanhã. Estamos te esperando! 💈`;
     } else if (type === 'aniversario') {
-      msg = `Parabéns ${nameF}! 🎂 Hoje é seu aniversário e nós da Barbearia Isaias preparamos um cupom especial de 15% de desconto para sua próxima visita. Aproveite seu dia!`;
+      msg = `Parabéns ${nameF}! 🎂 Hoje é seu aniversário e nós da ${companyName} preparamos um cupom especial de 15% de desconto para sua próxima visita. Aproveite seu dia!`;
     } else if (type === 'retorno') {
       msg = `Olá ${nameF}, sentimos sua falta! Já faz mais de 15 dias de sua última visita. Que tal agendar um horário para dar aquele tapa no visual? ✂️ Responda para reservar!`;
     } else {

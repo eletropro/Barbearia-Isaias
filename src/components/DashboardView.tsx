@@ -32,6 +32,7 @@ import {
   Legend
 } from 'recharts';
 import { Client, Product, Service, Appointment, Sale, CashRegister, User, UserRole } from '../types';
+import { BarberStateEngine } from '../barberState';
 
 interface DashboardProps {
   currentUser: User | null;
@@ -249,7 +250,7 @@ export default function DashboardView({
           <h1 className="text-2xl md:text-3xl font-bold mt-1">Olá, {currentUser?.name || 'Bem-vindo'}!</h1>
           <p className="text-purple-200 text-sm mt-1">
             {isAdmin 
-              ? 'Aqui está o desempenho financeiro e operacional da Barbearia Isaias hoje.'
+              ? `Aqui está o desempenho financeiro e operacional da ${BarberStateEngine.getCompanyConfig().name} hoje.`
               : 'Gerencie seus atendimentos, comissões, agende clientes e registre vendas.'}
           </p>
         </div>
