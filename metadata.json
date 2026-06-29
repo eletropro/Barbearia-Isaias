@@ -1,0 +1,6 @@
+{
+  "name": "Barbearia Isaias",
+  "description": "Sistema premium completo de gestão para barbearias, com controle de clientes, agendamento, PDV, comissões, controle de estoque, financeiro, CRM e fidelidade.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
