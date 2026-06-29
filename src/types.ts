@@ -20,6 +20,7 @@ export interface User {
   color?: string; // Color code for appointments grid
   targetMonth: number; // Meta de vendas/atendimentos
   bonusAmount: number; // Bonificação por meta atingida
+  allowedTabs?: string[]; // Quais as funções que o funcionário tem acesso
 }
 
 export interface Attachment {

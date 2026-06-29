@@ -270,6 +270,24 @@ export default function App() {
     syncWithEngine();
   }, []);
 
+  const hasAccess = (tab: string) => {
+    if (!currentUser) return false;
+    if (currentUser.role === UserRole.ADMIN) return true;
+    if (currentUser.role === UserRole.CUSTOMER) return false;
+    return currentUser.allowedTabs?.includes(tab) ?? ['dashboard', 'agenda', 'vendas', 'clientes'].includes(tab);
+  };
+
+  useEffect(() => {
+    if (currentUser && currentUser.role === UserRole.EMPLOYEE) {
+      if (!hasAccess(activeTab)) {
+        const allowed = currentUser.allowedTabs || ['dashboard', 'agenda', 'vendas', 'clientes'];
+        if (allowed.length > 0) {
+          setActiveTab(allowed[0]);
+        }
+      }
+    }
+  }, [currentUser, activeTab]);
+
   if (!currentUser) {
     return <AuthView onLoginSuccess={syncWithEngine} darkMode={darkMode} setDarkMode={setDarkMode} />;
   }
@@ -322,82 +340,96 @@ export default function App() {
 
           {/* Navigation Links list */}
           <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto scrollbar-none text-xs">
-            <button
-              onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-                activeTab === 'dashboard' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <LayoutDashboard className="h-4 w-4" /> Painel Comercial
-            </button>
-            <button
-              onClick={() => { setActiveTab('agenda'); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-                activeTab === 'agenda' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <Calendar className="h-4 w-4" /> Agenda & Cadeiras
-            </button>
-            <button
-              onClick={() => { setActiveTab('vendas'); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-                activeTab === 'vendas' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <ShoppingBag className="h-4 w-4" /> Frente de Caixa (PDV)
-            </button>
-            <button
-              onClick={() => { setActiveTab('clientes'); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-                activeTab === 'clientes' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-              }`}
-            >
-              <Users className="h-4 w-4" /> Clientes & CRM
-            </button>
+            {hasAccess('dashboard') && (
+              <button
+                onClick={() => { setActiveTab('dashboard'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
+                  activeTab === 'dashboard' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <LayoutDashboard className="h-4 w-4" /> Painel Comercial
+              </button>
+            )}
+            {hasAccess('agenda') && (
+              <button
+                onClick={() => { setActiveTab('agenda'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
+                  activeTab === 'agenda' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <Calendar className="h-4 w-4" /> Agenda & Cadeiras
+              </button>
+            )}
+            {hasAccess('vendas') && (
+              <button
+                onClick={() => { setActiveTab('vendas'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
+                  activeTab === 'vendas' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <ShoppingBag className="h-4 w-4" /> Frente de Caixa (PDV)
+              </button>
+            )}
+            {hasAccess('clientes') && (
+              <button
+                onClick={() => { setActiveTab('clientes'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
+                  activeTab === 'clientes' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <Users className="h-4 w-4" /> Clientes & CRM
+              </button>
+            )}
 
-            {currentUser?.role === UserRole.ADMIN && (
-              <>
-                <button
-                  onClick={() => { setActiveTab('estoque'); setIsSidebarOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-                    activeTab === 'estoque' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  <Package className="h-4 w-4" /> Estoque & Catálogo
-                </button>
-                <button
-                  onClick={() => { setActiveTab('servicos'); setIsSidebarOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-                    activeTab === 'servicos' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  <Scissors className="h-4 w-4" /> Serviços Menu
-                </button>
-                <button
-                  onClick={() => { setActiveTab('fidelidade'); setIsSidebarOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-                    activeTab === 'fidelidade' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  <Gift className="h-4 w-4" /> Campanhas & Cashback
-                </button>
-                <button
-                  onClick={() => { setActiveTab('financas'); setIsSidebarOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-                    activeTab === 'financas' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  <DollarSign className="h-4 w-4" /> Caixa & Finanças
-                </button>
-                <button
-                  onClick={() => { setActiveTab('configuracoes'); setIsSidebarOpen(false); }}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
-                    activeTab === 'configuracoes' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  <Settings className="h-4 w-4" /> Configs & Firebase
-                </button>
-              </>
+            {hasAccess('estoque') && (
+              <button
+                onClick={() => { setActiveTab('estoque'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
+                  activeTab === 'estoque' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <Package className="h-4 w-4" /> Estoque & Catálogo
+              </button>
+            )}
+            {hasAccess('servicos') && (
+              <button
+                onClick={() => { setActiveTab('servicos'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
+                  activeTab === 'servicos' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <Scissors className="h-4 w-4" /> Serviços Menu
+              </button>
+            )}
+            {hasAccess('fidelidade') && (
+              <button
+                onClick={() => { setActiveTab('fidelidade'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
+                  activeTab === 'fidelidade' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <Gift className="h-4 w-4" /> Campanhas & Cashback
+              </button>
+            )}
+            {hasAccess('financas') && (
+              <button
+                onClick={() => { setActiveTab('financas'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
+                  activeTab === 'financas' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <DollarSign className="h-4 w-4" /> Caixa & Finanças
+              </button>
+            )}
+            {hasAccess('configuracoes') && (
+              <button
+                onClick={() => { setActiveTab('configuracoes'); setIsSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
+                  activeTab === 'configuracoes' ? 'bg-purple-600 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <Settings className="h-4 w-4" /> Configs & Firebase
+              </button>
             )}
 
             <button
@@ -537,7 +569,7 @@ export default function App() {
           {/* Core active viewport container */}
           <main className="flex-1 overflow-y-auto p-6">
             <div className="max-w-7xl mx-auto h-full">
-              {activeTab === 'dashboard' && (
+              {activeTab === 'dashboard' && hasAccess('dashboard') && (
                 <DashboardView
                   currentUser={currentUser}
                   clients={clients}
@@ -550,7 +582,7 @@ export default function App() {
                 />
               )}
 
-              {activeTab === 'clientes' && (
+              {activeTab === 'clientes' && hasAccess('clientes') && (
                 <ClientsView
                   currentUser={currentUser}
                   clients={clients}
@@ -560,7 +592,7 @@ export default function App() {
                 />
               )}
 
-              {activeTab === 'estoque' && (
+              {activeTab === 'estoque' && hasAccess('estoque') && (
                 <ProductsView
                   currentUser={currentUser}
                   products={products}
@@ -571,7 +603,7 @@ export default function App() {
                 />
               )}
 
-              {activeTab === 'servicos' && (
+              {activeTab === 'servicos' && hasAccess('servicos') && (
                 <ServicesView
                   currentUser={currentUser}
                   services={services}
@@ -580,7 +612,7 @@ export default function App() {
                 />
               )}
 
-              {activeTab === 'agenda' && (
+              {activeTab === 'agenda' && hasAccess('agenda') && (
                 <SchedulingView
                   currentUser={currentUser}
                   appointments={appointments}
@@ -592,7 +624,7 @@ export default function App() {
                 />
               )}
 
-              {activeTab === 'vendas' && (
+              {activeTab === 'vendas' && hasAccess('vendas') && (
                 <SalesView
                   currentUser={currentUser}
                   clients={clients}
@@ -603,7 +635,7 @@ export default function App() {
                 />
               )}
 
-              {activeTab === 'financas' && (
+              {activeTab === 'financas' && hasAccess('financas') && (
                 <FinanceAndReportsView
                   currentUser={currentUser}
                   cashRegister={cashRegister}
@@ -617,7 +649,7 @@ export default function App() {
                 />
               )}
 
-              {activeTab === 'fidelidade' && (
+              {activeTab === 'fidelidade' && hasAccess('fidelidade') && (
                 <CRMAndLoyaltyView
                   currentUser={currentUser}
                   clients={clients}
@@ -627,7 +659,7 @@ export default function App() {
                 />
               )}
 
-              {activeTab === 'configuracoes' && (
+              {activeTab === 'configuracoes' && hasAccess('configuracoes') && (
                 <SettingsView
                   currentUser={currentUser}
                   barbers={barbers}

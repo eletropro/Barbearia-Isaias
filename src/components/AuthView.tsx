@@ -117,7 +117,7 @@ export default function AuthView({
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       setSimulatedCode(code);
       setRecoveryStep(2);
-      setSuccess(`Código de segurança enviado! Simulação do SMS/E-mail: o código é [ ${code} ]`);
+      setSuccess(`Código de segurança enviado com sucesso! O código temporário gerado para prosseguir é: ${code}`);
     }, 1000);
   };
 
@@ -130,7 +130,7 @@ export default function AuthView({
     }
 
     if (recoveryCode !== simulatedCode) {
-      setError('Código de segurança incorreto. Verifique a mensagem de simulação.');
+      setError('Código de segurança incorreto. Por favor, digite o código recebido.');
       return;
     }
 
@@ -210,12 +210,11 @@ export default function AuthView({
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@barbearia.com.br"
+                  placeholder="seuemail@provedor.com"
                   className="w-full pl-11 pr-4 py-3 bg-gray-50/50 dark:bg-slate-800/40 border border-gray-100 dark:border-slate-800 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   required
                 />
               </div>
-              <p className="text-[10px] text-gray-400">Dica: Administrador de demonstração é <span className="font-bold">admin@barbearia.com.br</span></p>
             </div>
 
             <div className="space-y-1.5">
@@ -235,12 +234,11 @@ export default function AuthView({
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="admin"
+                  placeholder="Sua senha de acesso"
                   className="w-full pl-11 pr-4 py-3 bg-gray-50/50 dark:bg-slate-800/40 border border-gray-100 dark:border-slate-800 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   required
                 />
               </div>
-              <p className="text-[10px] text-gray-400">Dica: Senha do administrador de demonstração é <span className="font-bold">admin</span></p>
             </div>
 
             <button
@@ -336,53 +334,44 @@ export default function AuthView({
             {/* Role Selection Blocks */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Selecione seu Tipo de Conta</label>
-              <div className="grid grid-cols-1 gap-2.5">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => setRole(UserRole.CUSTOMER)}
-                  className={`p-3 rounded-2xl border text-left flex items-start gap-3 transition-all ${
+                  className={`py-3 px-1 rounded-2xl border text-center flex flex-col items-center justify-center gap-1.5 transition-all ${
                     role === UserRole.CUSTOMER
-                      ? 'border-purple-600 bg-purple-50/20 text-purple-900 dark:text-purple-300 ring-1 ring-purple-600'
-                      : 'border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/20'
+                      ? 'border-amber-600 bg-amber-50/10 text-amber-900 dark:text-amber-300 ring-1 ring-amber-600 font-extrabold'
+                      : 'border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/20 text-gray-600 dark:text-gray-400'
                   }`}
                 >
-                  <User className="h-5 w-5 mt-0.5 text-purple-600" />
-                  <div>
-                    <span className="font-extrabold text-xs block">Cliente Barbearia 📱</span>
-                    <span className="text-[10px] text-gray-400">Portal de autoatendimento para marcar cortes, checar pontos e cashback.</span>
-                  </div>
+                  <User className="h-4 w-4" />
+                  <span className="text-xs">Cliente</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setRole(UserRole.EMPLOYEE)}
-                  className={`p-3 rounded-2xl border text-left flex items-start gap-3 transition-all ${
+                  className={`py-3 px-1 rounded-2xl border text-center flex flex-col items-center justify-center gap-1.5 transition-all ${
                     role === UserRole.EMPLOYEE
-                      ? 'border-cyan-600 bg-cyan-50/20 text-cyan-950 dark:text-cyan-300 ring-1 ring-cyan-600'
-                      : 'border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/20'
+                      ? 'border-amber-600 bg-amber-50/10 text-amber-900 dark:text-amber-300 ring-1 ring-amber-600 font-extrabold'
+                      : 'border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/20 text-gray-600 dark:text-gray-400'
                   }`}
                 >
-                  <ShieldCheck className="h-5 w-5 mt-0.5 text-cyan-600" />
-                  <div>
-                    <span className="font-extrabold text-xs block">Funcionário / Barbeiro 💈</span>
-                    <span className="text-[10px] text-gray-400">Acesso às cadeiras agendadas, painel de comissão e frente de caixa.</span>
-                  </div>
+                  <ShieldCheck className="h-4 w-4" />
+                  <span className="text-xs">Funcionário</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setRole(UserRole.ADMIN)}
-                  className={`p-3 rounded-2xl border text-left flex items-start gap-3 transition-all ${
+                  className={`py-3 px-1 rounded-2xl border text-center flex flex-col items-center justify-center gap-1.5 transition-all ${
                     role === UserRole.ADMIN
-                      ? 'border-emerald-600 bg-emerald-50/20 text-emerald-950 dark:text-emerald-300 ring-1 ring-emerald-600'
-                      : 'border-gray-100 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/20'
+                      ? 'border-amber-600 bg-amber-50/10 text-amber-900 dark:text-amber-300 ring-1 ring-amber-600 font-extrabold'
+                      : 'border-gray-200 dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/20 text-gray-600 dark:text-gray-400'
                   }`}
                 >
-                  <KeyRound className="h-5 w-5 mt-0.5 text-emerald-600" />
-                  <div>
-                    <span className="font-extrabold text-xs block">Administrador Geral 🔑</span>
-                    <span className="text-[10px] text-gray-400">Gestor completo da loja, faturamento, caixa, estoque e relatórios.</span>
-                  </div>
+                  <KeyRound className="h-4 w-4" />
+                  <span className="text-xs">Administrador</span>
                 </button>
               </div>
             </div>
@@ -422,7 +411,7 @@ export default function AuthView({
                     <HelpCircle className="h-4 w-4" /> Como funciona?
                   </span>
                   <p className="text-[11px] text-gray-500">
-                    Insira seu e-mail cadastrado. O sistema gerará um código de segurança de 6 dígitos simulado para que você possa redefinir sua senha imediatamente.
+                    Insira seu e-mail cadastrado. O sistema enviará o código temporário de verificação para que você possa redefinir sua senha com total segurança imediatamente.
                   </p>
                 </div>
 

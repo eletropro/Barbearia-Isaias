@@ -5,10 +5,23 @@
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   
-  --color-brand-purple: #820ad1; /* Nubank Purple */
+  --color-brand-purple: #d97706; /* Master Amber-600 */
   --color-brand-dark: #121212; /* Deep Charcoal Apple Black */
   --color-brand-slate: #1c1c1e; /* Apple Slate */
   --color-brand-emerald: #008055; /* Cash Emerald */
+
+  /* Override purple color spectrum to create an premium masculine Amber/Bronze theme across the whole app */
+  --color-purple-50: #fefcf6;
+  --color-purple-100: #fef3c7;
+  --color-purple-200: #fde68a;
+  --color-purple-300: #fcd34d;
+  --color-purple-400: #fbbf24;
+  --color-purple-500: #f59e0b;
+  --color-purple-600: #d97706;
+  --color-purple-700: #b45309;
+  --color-purple-800: #92400e;
+  --color-purple-900: #78350f;
+  --color-purple-950: #451a03;
 }
 
 /* Base resets */

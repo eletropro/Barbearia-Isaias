@@ -79,6 +79,7 @@ export default function SettingsView({
   const [bBonus, setBBonus] = useState(300);
   const [bPhotoUrl, setBPhotoUrl] = useState('');
   const [bColor, setBColor] = useState('#820ad1');
+  const [bAllowedTabs, setBAllowedTabs] = useState<string[]>(['dashboard', 'agenda', 'vendas', 'clientes']);
 
   // Business Hours state
   const [openTime, setOpenTime] = useState('08:00');
@@ -96,6 +97,7 @@ export default function SettingsView({
     setBBonus(300);
     setBPhotoUrl('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200');
     setBColor('#820ad1');
+    setBAllowedTabs(['dashboard', 'agenda', 'vendas', 'clientes']);
     setIsBarberFormOpen(true);
   };
 
@@ -112,6 +114,7 @@ export default function SettingsView({
     setBBonus(barber.bonusAmount);
     setBPhotoUrl(barber.photoUrl);
     setBColor(barber.color || '#820ad1');
+    setBAllowedTabs(barber.allowedTabs || ['dashboard', 'agenda', 'vendas', 'clientes']);
     setIsBarberFormOpen(true);
   };
 
@@ -129,7 +132,8 @@ export default function SettingsView({
       targetMonth: parseFloat(bTarget.toString()),
       bonusAmount: parseFloat(bBonus.toString()),
       photoUrl: bPhotoUrl,
-      color: bColor
+      color: bColor,
+      allowedTabs: bAllowedTabs
     });
     setIsBarberFormOpen(false);
   };
@@ -800,9 +804,47 @@ export default function SettingsView({
                   className="w-full p-2.5 text-xs rounded-xl border border-gray-200 focus:outline-none capitalize"
                 >
                   <option value={UserRole.ADMIN}>Administrador (Acesso Geral)</option>
-                  <option value={UserRole.EMPLOYEE}>Vendedor / Funcionário (Restrito)</option>
+                  <option value={UserRole.EMPLOYEE}>Funcionário / Barbeiro (Restrito)</option>
                 </select>
               </div>
+
+              {bRole === UserRole.EMPLOYEE && (
+                <div className="space-y-1.5 p-3.5 bg-slate-50 dark:bg-slate-800/20 rounded-2xl border border-slate-100 dark:border-slate-800/80">
+                  <label className="block text-xs font-bold text-gray-700 dark:text-slate-300">
+                    Recursos Autorizados para este Funcionário:
+                  </label>
+                  <p className="text-[10px] text-gray-400 mb-2">Selecione quais funções este funcionário pode visualizar e gerenciar:</p>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {[
+                      { id: 'dashboard', label: 'Painel Comercial' },
+                      { id: 'agenda', label: 'Agenda & Cadeiras' },
+                      { id: 'vendas', label: 'Frente de Caixa (PDV)' },
+                      { id: 'clientes', label: 'Clientes & CRM' },
+                      { id: 'estoque', label: 'Estoque & Catálogo' },
+                      { id: 'servicos', label: 'Serviços Menu' },
+                      { id: 'fidelidade', label: 'Campanhas & Cashback' },
+                      { id: 'financas', label: 'Caixa & Finanças' },
+                      { id: 'configuracoes', label: 'Configurações' }
+                    ].map(tab => (
+                      <label key={tab.id} className="flex items-center gap-1.5 cursor-pointer font-medium text-gray-700 dark:text-slate-300 hover:text-gray-900 select-none">
+                        <input
+                          type="checkbox"
+                          checked={bAllowedTabs.includes(tab.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setBAllowedTabs(prev => [...prev, tab.id]);
+                            } else {
+                              setBAllowedTabs(prev => prev.filter(t => t !== tab.id));
+                            }
+                          }}
+                          className="rounded border-gray-300 text-purple-600 focus:ring-purple-500 h-3.5 w-3.5"
+                        />
+                        <span>{tab.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
