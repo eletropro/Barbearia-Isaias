@@ -16,7 +16,8 @@ import {
   CompanyConfig,
   StockMovement,
   PaymentMethod,
-  Attachment
+  Attachment,
+  AppNotification
 } from './types';
 
 // Initial Mock/Seed Data
@@ -159,7 +160,8 @@ const STORAGE_KEYS = {
   LOGS: 'barber_logs',
   COMPANY: 'barber_company',
   MOVEMENTS: 'barber_movements',
-  REMAIN_CONNECTED: 'barber_remain_connected'
+  REMAIN_CONNECTED: 'barber_remain_connected',
+  NOTIFICATIONS: 'barber_notifications'
 };
 
 // Helper to safely load JSON from localStorage
@@ -624,6 +626,13 @@ export class BarberStateEngine {
         'cadastro',
         `Novo agendamento criado para ${savedApp.isBlockedTime ? 'BLOQUEIO' : savedApp.clientName} no dia ${savedApp.date} às ${savedApp.time}.`
       );
+
+      // Auto-trigger persistent notification
+      BarberStateEngine.addNotification(
+        'Novo Agendamento 📅',
+        `${savedApp.isBlockedTime ? 'Bloqueio de horário' : 'Atendimento para ' + savedApp.clientName} agendado para o dia ${savedApp.date} às ${savedApp.time}.`,
+        'agendamento'
+      );
     }
 
     saveToStorage(STORAGE_KEYS.APPOINTMENTS, apps);
@@ -947,6 +956,120 @@ export class BarberStateEngine {
       `Perfil de equipe alterado: ${barber.name}`,
       'configuracao',
       `Perfil e comissões atualizados.`
+    );
+  }
+
+  // Notification methods
+  static getNotifications(): AppNotification[] {
+    return loadFromStorage<AppNotification[]>(STORAGE_KEYS.NOTIFICATIONS, [
+      {
+        id: 'notif_1',
+        title: 'Sistema Pronto!',
+        description: 'Tudo pronto para gerenciar sua barbearia com alta eficiência.',
+        category: 'sistema',
+        read: false,
+        createdAt: new Date().toISOString()
+      }
+    ]);
+  }
+
+  static addNotification(title: string, description: string, category: AppNotification['category']): AppNotification {
+    const notifications = this.getNotifications();
+    const newNotif: AppNotification = {
+      id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      title,
+      description,
+      category,
+      read: false,
+      createdAt: new Date().toISOString()
+    };
+    notifications.unshift(newNotif);
+    saveToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications);
+    return newNotif;
+  }
+
+  static markAllNotificationsAsRead(): void {
+    const notifications = this.getNotifications().map(n => ({ ...n, read: true }));
+    saveToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications);
+  }
+
+  static clearNotifications(): void {
+    saveToStorage(STORAGE_KEYS.NOTIFICATIONS, []);
+  }
+
+  static deleteNotification(id: string): void {
+    const notifications = this.getNotifications().filter(n => n.id !== id);
+    saveToStorage(STORAGE_KEYS.NOTIFICATIONS, notifications);
+  }
+
+  // Dynamic Deletions requested by user
+  static deleteClient(id: string): void {
+    const clients = this.getClients().filter(c => c.id !== id);
+    saveToStorage(STORAGE_KEYS.CLIENTS, clients);
+    const currentUser = this.getCurrentUser();
+    this.addLog(
+      currentUser?.id || 'sys',
+      currentUser?.name || 'Sistema',
+      currentUser?.role || 'admin',
+      'Cliente Removido',
+      'cadastro',
+      `Cliente com ID ${id} foi removido do sistema.`
+    );
+  }
+
+  static deleteProduct(id: string): void {
+    const products = this.getProducts().filter(p => p.id !== id);
+    saveToStorage(STORAGE_KEYS.PRODUCTS, products);
+    const currentUser = this.getCurrentUser();
+    this.addLog(
+      currentUser?.id || 'sys',
+      currentUser?.name || 'Sistema',
+      currentUser?.role || 'admin',
+      'Produto Removido',
+      'estoque',
+      `Produto com ID ${id} foi removido.`
+    );
+  }
+
+  static deleteService(id: string): void {
+    const services = this.getServices().filter(s => s.id !== id);
+    saveToStorage(STORAGE_KEYS.SERVICES, services);
+    const currentUser = this.getCurrentUser();
+    this.addLog(
+      currentUser?.id || 'sys',
+      currentUser?.name || 'Sistema',
+      currentUser?.role || 'admin',
+      'Serviço Removido',
+      'configuracao',
+      `Serviço com ID ${id} foi removido.`
+    );
+  }
+
+  static deleteAppointment(id: string): void {
+    const appointments = this.getAppointments().filter(a => a.id !== id);
+    saveToStorage(STORAGE_KEYS.APPOINTMENTS, appointments);
+    const currentUser = this.getCurrentUser();
+    this.addLog(
+      currentUser?.id || 'sys',
+      currentUser?.name || 'Sistema',
+      currentUser?.role || 'employee',
+      'Agendamento Cancelado/Removido',
+      'cadastro',
+      `Agendamento com ID ${id} foi removido do sistema.`
+    );
+  }
+
+  static deleteUser(id: string): void {
+    const users = this.getUsers().filter(u => u.id !== id);
+    saveToStorage(STORAGE_KEYS.USERS, users);
+    const currentUser = this.getCurrentUser();
+    this.addLog(
+      currentUser?.id || 'sys',
+      currentUser?.name || 'Sistema',
+      currentUser?.role || 'admin',
+      'Funcionário Removido',
+      'configuracao',
+      `Usuário/Funcionário com ID ${id} foi removido do sistema.`
     );
   }
 }

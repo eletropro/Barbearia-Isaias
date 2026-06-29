@@ -207,3 +207,13 @@ export interface SystemLog {
   date: string;
 }
 
+export interface AppNotification {
+  id: string;
+  title: string;
+  description: string;
+  category: 'agendamento' | 'sistema' | 'estoque' | 'crm';
+  read: boolean;
+  createdAt: string;
+}
+
+

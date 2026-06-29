@@ -28,6 +28,7 @@ interface SchedulingViewProps {
   services: Service[];
   barbers: BarberUser[];
   onSaveAppointment: (app: any) => void;
+  onDeleteAppointment?: (id: string) => void;
 }
 
 export default function SchedulingView({
@@ -36,7 +37,8 @@ export default function SchedulingView({
   clients,
   services,
   barbers,
-  onSaveAppointment
+  onSaveAppointment,
+  onDeleteAppointment
 }: SchedulingViewProps) {
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedBarberFilter, setSelectedBarberFilter] = useState<string>('todos');
@@ -541,20 +543,36 @@ export default function SchedulingView({
                 </div>
               )}
 
-              <div className="pt-2 flex justify-between gap-2 border-t border-gray-100">
+              <div className="pt-2 flex flex-col sm:flex-row justify-between gap-2 border-t border-gray-100">
                 {appId ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (confirm('Deseja realmente remover este agendamento?')) {
-                        handleUpdateStatus({ id: appId } as Appointment, 'cancelado');
-                        setIsModalOpen(false);
-                      }
-                    }}
-                    className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" /> Excluir / Cancelar
-                  </button>
+                  <div className="flex gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm('Deseja realmente cancelar este agendamento?')) {
+                          handleUpdateStatus({ id: appId } as Appointment, 'cancelado');
+                          setIsModalOpen(false);
+                        }
+                      }}
+                      className="bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 px-2.5 py-1.5 rounded-xl text-[11px] font-bold flex items-center gap-1"
+                    >
+                      Cancelar
+                    </button>
+                    {currentUser?.role === 'admin' && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm('Deseja realmente excluir definitivamente este agendamento?')) {
+                            onDeleteAppointment?.(appId);
+                            setIsModalOpen(false);
+                          }
+                        }}
+                        className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-2.5 py-1.5 rounded-xl text-[11px] font-bold flex items-center gap-1"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Excluir
+                      </button>
+                    )}
+                  </div>
                 ) : <div />}
                 
                 <div className="flex gap-2">

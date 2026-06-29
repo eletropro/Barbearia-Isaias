@@ -24,6 +24,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { Appointment, Client, Service, User as BarberUser, LoyaltyConfig } from '../types';
+import { BarberStateEngine } from '../barberState';
 
 interface CustomerPortalViewProps {
   appointments: Appointment[];
@@ -294,15 +295,15 @@ export default function CustomerPortalView({
         <div>
           <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
             <Smartphone className="h-5 w-5 text-purple-600" />
-            Portal de Agendamento do Cliente (Simulador)
+            Aplicativo de Agendamento do Cliente
           </h2>
           <p className="text-sm text-gray-500">
-            Esta tela simula o aplicativo mobile / link do WhatsApp que seus clientes usam para agendar cortes e consultar seu saldo de fidelidade/cashback.
+            Esta tela representa o aplicativo ou link direto que seus clientes utilizam para realizar agendamentos integrados, consultar fidelidade e acompanhar o histórico de visitas em tempo real.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-gray-400">Ver no Frame:</span>
+          <span className="text-xs font-bold text-gray-400">Visualização:</span>
           <button
             onClick={() => setDeviceFrame(!deviceFrame)}
             className={`px-3 py-1.5 text-xs font-bold rounded-xl border transition-all ${
@@ -311,7 +312,7 @@ export default function CustomerPortalView({
                 : 'bg-gray-50 border-gray-200 text-gray-600'
             }`}
           >
-            {deviceFrame ? 'Smartphone Simulado' : 'Tela Inteira (Responsivo)'}
+            {deviceFrame ? 'Visualização Mobile' : 'Tela Cheia (Responsivo)'}
           </button>
         </div>
       </div>
@@ -337,7 +338,7 @@ export default function CustomerPortalView({
             <header className="bg-slate-900 text-white px-4 py-3.5 flex items-center justify-between border-b border-slate-800">
               <div className="flex items-center gap-2">
                 <Scissors className="h-4.5 w-4.5 text-purple-400" />
-                <span className="font-extrabold text-xs tracking-wider font-mono">ISAIAS AGENDA</span>
+                <span className="font-extrabold text-xs tracking-wider font-mono">{BarberStateEngine.getCompanyConfig().name.toUpperCase()}</span>
               </div>
               <div className="flex items-center gap-2 text-[10px] text-gray-400 font-mono">
                 {currentUser ? (
@@ -348,7 +349,7 @@ export default function CustomerPortalView({
                     Sair da Conta
                   </button>
                 ) : (
-                  <span>● 5G Online</span>
+                  <span>● Online</span>
                 )}
               </div>
             </header>

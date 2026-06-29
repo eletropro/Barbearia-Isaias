@@ -28,7 +28,7 @@ import {
 
 // State and Types
 import { BarberStateEngine } from './barberState';
-import { User, UserRole, Client, Product, Service, Appointment, Sale, StockMovement, CashRegister, LoyaltyConfig, SystemLog, CompanyConfig } from './types';
+import { User, UserRole, Client, Product, Service, Appointment, Sale, StockMovement, CashRegister, LoyaltyConfig, SystemLog, CompanyConfig, AppNotification } from './types';
 
 // Views
 import DashboardView from './components/DashboardView';
@@ -76,7 +76,7 @@ export default function App() {
 
   // Modal Notification Center
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-  const [notificationCount, setNotificationCount] = useState(3);
+  const [notifications, setNotifications] = useState<AppNotification[]>(() => BarberStateEngine.getNotifications());
 
   // Sync engine updates to state
   const syncWithEngine = () => {
@@ -92,6 +92,7 @@ export default function App() {
     setStockMovements([...BarberStateEngine.getStockMovements()]);
     setCashRegister({ ...BarberStateEngine.getCashRegister() });
     setCompanyConfig(BarberStateEngine.getCompanyConfig());
+    setNotifications([...BarberStateEngine.getNotifications()]);
     
     // Map SecurityLog to SystemLog
     const mappedLogs: SystemLog[] = BarberStateEngine.getLogs().map(l => ({
@@ -194,7 +195,11 @@ export default function App() {
       `Disparadas ${targets.length} mensagens para clientes via WhatsApp.`
     );
     
-    setNotificationCount(prev => prev + 1);
+    BarberStateEngine.addNotification(
+      `Campanha Disparada: ${title} 🚀`,
+      `Campanha de marketing disparada com sucesso para ${targets.length} clientes pelo CRM.`,
+      'crm'
+    );
     syncWithEngine();
   };
 
@@ -215,6 +220,48 @@ export default function App() {
 
   const handleSaveBarber = (barberData: any) => {
     BarberStateEngine.saveBarber(barberData);
+    syncWithEngine();
+  };
+
+  // Notification management handlers
+  const handleMarkNotificationsRead = () => {
+    BarberStateEngine.markAllNotificationsAsRead();
+    syncWithEngine();
+  };
+
+  const handleClearNotifications = () => {
+    BarberStateEngine.clearNotifications();
+    syncWithEngine();
+  };
+
+  const handleDeleteNotification = (id: string) => {
+    BarberStateEngine.deleteNotification(id);
+    syncWithEngine();
+  };
+
+  // Dynamic Deletion handlers
+  const handleDeleteClient = (id: string) => {
+    BarberStateEngine.deleteClient(id);
+    syncWithEngine();
+  };
+
+  const handleDeleteProduct = (id: string) => {
+    BarberStateEngine.deleteProduct(id);
+    syncWithEngine();
+  };
+
+  const handleDeleteService = (id: string) => {
+    BarberStateEngine.deleteService(id);
+    syncWithEngine();
+  };
+
+  const handleDeleteAppointment = (id: string) => {
+    BarberStateEngine.deleteAppointment(id);
+    syncWithEngine();
+  };
+
+  const handleDeleteUser = (id: string) => {
+    BarberStateEngine.deleteUser(id);
     syncWithEngine();
   };
 
@@ -405,8 +452,8 @@ export default function App() {
 
               <div className="hidden sm:flex items-center gap-2 text-xs font-semibold text-gray-500 bg-gray-50 dark:bg-slate-800/40 px-3 py-1.5 rounded-xl border border-gray-100 dark:border-slate-800">
                 <UserCheck className="h-3.5 w-3.5 text-purple-500" />
-                <span>Modo de Teste:</span>
-                <span className="text-purple-600 font-extrabold uppercase">{currentUser?.role}</span>
+                <span>Perfil Ativo:</span>
+                <span className="text-purple-600 font-extrabold uppercase">{currentUser?.role === 'admin' ? 'Administrador' : currentUser?.role === 'employee' ? 'Funcionário/Barbeiro' : 'Cliente'}</span>
               </div>
             </div>
 
@@ -432,11 +479,14 @@ export default function App() {
               {/* Notifications */}
               <div className="relative">
                 <button
-                  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                  onClick={() => {
+                    setIsNotificationsOpen(!isNotificationsOpen);
+                    handleMarkNotificationsRead();
+                  }}
                   className="p-2 rounded-xl text-gray-500 hover:text-gray-800 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-slate-800/40 relative"
                 >
                   <Bell className="h-4 w-4" />
-                  {notificationCount > 0 && (
+                  {notifications.filter(n => !n.read).length > 0 && (
                     <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-purple-600 animate-ping"></span>
                   )}
                 </button>
@@ -446,22 +496,37 @@ export default function App() {
                   <div className="absolute right-0 mt-2.5 w-80 bg-white dark:bg-slate-900 border border-gray-100 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-4 space-y-3.5 text-xs animate-in slide-in-from-top-2">
                     <div className="flex justify-between items-center border-b border-gray-50 dark:border-slate-800 pb-2">
                       <span className="font-bold text-gray-800 dark:text-slate-200">Notificações Recentes</span>
-                      <button onClick={() => setNotificationCount(0)} className="text-[10px] text-purple-600 font-bold hover:underline">Limpar</button>
+                      <button onClick={handleClearNotifications} className="text-[10px] text-purple-600 font-bold hover:underline">Limpar</button>
                     </div>
 
                     <div className="space-y-3 max-h-56 overflow-y-auto pr-1">
-                      <div className="p-2.5 bg-purple-50/40 dark:bg-purple-950/20 rounded-xl space-y-1">
-                        <p className="font-bold text-purple-900 dark:text-purple-300">📱 WhatsApp Campanha Disparada</p>
-                        <p className="text-[10px] text-gray-500">O robô do CRM enviou os modelos de agendamento de inverno para aniversariantes.</p>
-                      </div>
-                      <div className="p-2.5 bg-gray-50 dark:bg-slate-800/40 rounded-xl space-y-1">
-                        <p className="font-bold text-gray-800 dark:text-slate-200">🔄 Sincronização Sucedida</p>
-                        <p className="text-[10px] text-gray-500">Último backup exportado de forma íntegra para o Firebase Firestore.</p>
-                      </div>
-                      <div className="p-2.5 bg-gray-50 dark:bg-slate-800/40 rounded-xl space-y-1">
-                        <p className="font-bold text-gray-800 dark:text-slate-200">⚠️ Estoque Baixo Alerta</p>
-                        <p className="text-[10px] text-gray-500">A Pomada Modeladora atingiu o estoque mínimo de segurança.</p>
-                      </div>
+                      {notifications.length === 0 ? (
+                        <div className="text-center py-4 text-gray-400">
+                          Nenhuma notificação recente.
+                        </div>
+                      ) : (
+                        notifications.map(notif => (
+                          <div key={notif.id} className="p-2.5 bg-gray-50 dark:bg-slate-800/40 rounded-xl space-y-1 relative group">
+                            <div className="flex justify-between items-start">
+                              <p className="font-bold text-gray-800 dark:text-slate-200">{notif.title}</p>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteNotification(notif.id);
+                                }}
+                                className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity ml-1 text-[10px]"
+                                title="Remover"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                            <p className="text-[10px] text-gray-500">{notif.description}</p>
+                            <span className="text-[8px] text-gray-400 font-mono mt-1 block">
+                              {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
                 )}
@@ -491,6 +556,7 @@ export default function App() {
                   clients={clients}
                   onSaveClient={handleSaveClient}
                   onAddAttachment={handleAddAttachment}
+                  onDeleteClient={handleDeleteClient}
                 />
               )}
 
@@ -501,6 +567,7 @@ export default function App() {
                   stockMovements={stockMovements}
                   onSaveProduct={handleSaveProduct}
                   onRegisterStockMovement={handleRegisterStockMovement}
+                  onDeleteProduct={handleDeleteProduct}
                 />
               )}
 
@@ -509,6 +576,7 @@ export default function App() {
                   currentUser={currentUser}
                   services={services}
                   onSaveService={handleSaveService}
+                  onDeleteService={handleDeleteService}
                 />
               )}
 
@@ -520,6 +588,7 @@ export default function App() {
                   services={services}
                   barbers={barbers}
                   onSaveAppointment={handleSaveAppointment}
+                  onDeleteAppointment={handleDeleteAppointment}
                 />
               )}
 
@@ -570,6 +639,7 @@ export default function App() {
                   onRestoreBackup={handleRestoreBackup}
                   autoSync={autoSync}
                   onToggleAutoSync={handleToggleAutoSync}
+                  onDeleteUser={handleDeleteUser}
                 />
               )}
 

@@ -17,7 +17,8 @@ import {
   Bookmark,
   Check,
   TrendingUp,
-  Edit2
+  Edit2,
+  Trash
 } from 'lucide-react';
 import { Product, StockMovement, User, UserRole } from '../types';
 
@@ -27,6 +28,7 @@ interface ProductsViewProps {
   stockMovements: StockMovement[];
   onSaveProduct: (product: any) => void;
   onRegisterStockMovement: (productId: string, type: 'entrada' | 'saida_manual' | 'ajuste', quantity: number, reason: string) => void;
+  onDeleteProduct?: (id: string) => void;
 }
 
 export default function ProductsView({
@@ -34,7 +36,8 @@ export default function ProductsView({
   products,
   stockMovements,
   onSaveProduct,
-  onRegisterStockMovement
+  onRegisterStockMovement,
+  onDeleteProduct
 }: ProductsViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('todos');
@@ -338,13 +341,26 @@ export default function ProductsView({
                       Mover Estoque
                     </button>
                     {isAdmin && (
-                      <button
-                        onClick={() => handleOpenEditForm(prod)}
-                        className="p-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl transition-all"
-                        title="Editar Produto"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </button>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => handleOpenEditForm(prod)}
+                          className="p-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl transition-all"
+                          title="Editar Produto"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm(`Tem certeza de que deseja remover o produto ${prod.name}?`)) {
+                              onDeleteProduct?.(prod.id);
+                            }
+                          }}
+                          className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 rounded-xl transition-all"
+                          title="Remover Produto"
+                        >
+                          <Trash className="h-4 w-4" />
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>

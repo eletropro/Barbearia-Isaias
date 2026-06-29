@@ -4,19 +4,21 @@
  */
 
 import React, { useState } from 'react';
-import { Sparkles, Clock, Percent, DollarSign, Plus, Edit3, Scissors } from 'lucide-react';
+import { Sparkles, Clock, Percent, DollarSign, Plus, Edit3, Scissors, Trash } from 'lucide-react';
 import { Service, User, UserRole } from '../types';
 
 interface ServicesViewProps {
   currentUser: User | null;
   services: Service[];
   onSaveService: (service: Service) => void;
+  onDeleteService?: (id: string) => void;
 }
 
 export default function ServicesView({
   currentUser,
   services,
-  onSaveService
+  onSaveService,
+  onDeleteService
 }: ServicesViewProps) {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -130,12 +132,25 @@ export default function ServicesView({
               </div>
 
               {isAdmin && (
-                <button
-                  onClick={() => handleOpenEditForm(srv)}
-                  className="w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 py-2 rounded-xl text-xs font-semibold text-center transition-colors flex items-center justify-center gap-1"
-                >
-                  <Edit3 className="h-3.5 w-3.5" /> Ajustar Preços / Comissão
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleOpenEditForm(srv)}
+                    className="flex-1 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 py-2 rounded-xl text-xs font-semibold text-center transition-colors flex items-center justify-center gap-1"
+                  >
+                    <Edit3 className="h-3.5 w-3.5" /> Ajustar
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm(`Tem certeza de que deseja remover o serviço ${srv.name}?`)) {
+                        onDeleteService?.(srv.id);
+                      }
+                    }}
+                    className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center"
+                    title="Remover Serviço"
+                  >
+                    <Trash className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               )}
             </div>
           );

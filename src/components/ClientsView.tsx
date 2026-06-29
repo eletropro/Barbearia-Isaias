@@ -34,13 +34,15 @@ interface ClientsViewProps {
   clients: Client[];
   onSaveClient: (client: any) => void;
   onAddAttachment: (clientId: string, name: string, size: string) => void;
+  onDeleteClient?: (id: string) => void;
 }
 
 export default function ClientsView({
   currentUser,
   clients,
   onSaveClient,
-  onAddAttachment
+  onAddAttachment,
+  onDeleteClient
 }: ClientsViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<'todos' | 'ativos' | 'inativos' | 'aniversariantes' | 'vip' | 'atrasados'>('todos');
@@ -570,12 +572,27 @@ export default function ClientsView({
                   </div>
                 </div>
 
-                <button
-                  onClick={() => handleOpenEditModal(selectedClient)}
-                  className="bg-gray-50 hover:bg-gray-100 border border-gray-200 px-3.5 py-1.5 rounded-xl text-xs font-bold text-gray-700 transition-colors"
-                >
-                  Editar Cadastro
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleOpenEditModal(selectedClient)}
+                    className="bg-gray-50 hover:bg-gray-100 border border-gray-200 px-3.5 py-1.5 rounded-xl text-xs font-bold text-gray-700 transition-colors"
+                  >
+                    Editar Cadastro
+                  </button>
+                  {currentUser?.role === 'admin' && (
+                    <button
+                      onClick={() => {
+                        if (confirm(`Tem certeza de que deseja remover o cliente ${selectedClient.name}?`)) {
+                          onDeleteClient?.(selectedClient.id);
+                          setSelectedClient(null);
+                        }
+                      }}
+                      className="bg-red-50 hover:bg-red-100 border border-red-200 px-3.5 py-1.5 rounded-xl text-xs font-bold text-red-600 transition-colors"
+                    >
+                      Excluir Cliente
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="flex-1 overflow-y-auto p-6 space-y-6">

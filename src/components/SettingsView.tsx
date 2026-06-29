@@ -31,6 +31,7 @@ interface SettingsViewProps {
   onRestoreBackup: () => void;
   autoSync: boolean;
   onToggleAutoSync: () => void;
+  onDeleteUser?: (id: string) => void;
 }
 
 export default function SettingsView({
@@ -43,7 +44,8 @@ export default function SettingsView({
   onTriggerBackup,
   onRestoreBackup,
   autoSync,
-  onToggleAutoSync
+  onToggleAutoSync,
+  onDeleteUser
 }: SettingsViewProps) {
   const [activeTab, setActiveTab] = useState<'usuarios' | 'empresa' | 'funcionamento' | 'firebase' | 'logs'>('usuarios');
   
@@ -289,12 +291,27 @@ export default function SettingsView({
                 </div>
 
                 {isAdmin && (
-                  <button
-                    onClick={() => handleOpenEditBarber(barber)}
-                    className="w-full bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 py-2 rounded-xl text-xs font-bold text-center transition-all flex items-center justify-center gap-1 mt-2"
-                  >
-                    <Edit2 className="h-3.5 w-3.5" /> Ajustar Perfil / Metas
-                  </button>
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={() => handleOpenEditBarber(barber)}
+                      className="flex-1 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 py-2 rounded-xl text-xs font-bold text-center transition-all flex items-center justify-center gap-1"
+                    >
+                      <Edit2 className="h-3.5 w-3.5" /> Ajustar Perfil
+                    </button>
+                    {barber.id !== currentUser?.id && (
+                      <button
+                        onClick={() => {
+                          if (confirm(`Tem certeza de que deseja remover o funcionário ${barber.name}?`)) {
+                            onDeleteUser?.(barber.id);
+                          }
+                        }}
+                        className="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center"
+                        title="Remover Funcionário"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             ))}
