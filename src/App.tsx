@@ -120,8 +120,9 @@ export default function App() {
 
   // State modification wrappers
   const handleSaveClient = (client: any) => {
-    BarberStateEngine.saveClient(client);
+    const saved = BarberStateEngine.saveClient(client);
     syncWithEngine();
+    return saved;
   };
 
   const handleAddAttachment = (clientId: string, name: string, size: string) => {
@@ -302,6 +303,7 @@ export default function App() {
             services={services}
             barbers={barbers}
             loyaltyConfig={loyaltyConfig}
+            companyConfig={companyConfig}
             currentUser={currentUser}
             onSaveAppointment={handleSaveAppointment}
             onSaveClient={handleSaveClient}
@@ -682,6 +684,7 @@ export default function App() {
                   services={services}
                   barbers={barbers}
                   loyaltyConfig={loyaltyConfig}
+                  companyConfig={companyConfig}
                   onSaveAppointment={handleSaveAppointment}
                   onSaveClient={handleSaveClient}
                 />

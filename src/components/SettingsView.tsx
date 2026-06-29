@@ -82,9 +82,50 @@ export default function SettingsView({
   const [bAllowedTabs, setBAllowedTabs] = useState<string[]>(['dashboard', 'agenda', 'vendas', 'clientes']);
 
   // Business Hours state
-  const [openTime, setOpenTime] = useState('08:00');
-  const [closeTime, setCloseTime] = useState('20:00');
-  const [workDays, setWorkDays] = useState(['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado']);
+  const [workingHours, setWorkingHours] = useState<{ weekday: string; hours: string; closed: boolean }[]>(
+    companyConfig?.workingHours || [
+      { weekday: 'Segunda-feira', hours: '09:00 às 18:00', closed: false },
+      { weekday: 'Terça-feira', hours: '09:00 às 20:00', closed: false },
+      { weekday: 'Quarta-feira', hours: '09:00 às 20:00', closed: false },
+      { weekday: 'Quinta-feira', hours: '09:00 às 21:00', closed: false },
+      { weekday: 'Sexta-feira', hours: '09:00 às 21:00', closed: false },
+      { weekday: 'Sábado', hours: '08:00 às 20:00', closed: false },
+      { weekday: 'Domingo', hours: 'Fechado', closed: true }
+    ]
+  );
+
+  const getTimesFromHoursString = (hoursStr: string) => {
+    const match = hoursStr.match(/(\d{2}):(\d{2})\s*(?:às|to|-)\s*(\d{2}):(\d{2})/i);
+    if (match) {
+      return { start: `${match[1]}:${match[2]}`, end: `${match[3]}:${match[4]}` };
+    }
+    return { start: '09:00', end: '18:00' };
+  };
+
+  const handleWorkingHoursChange = (index: number, field: 'closed' | 'start' | 'end', value: any) => {
+    setWorkingHours(prev => {
+      const updated = [...prev];
+      const current = { ...updated[index] };
+      
+      if (field === 'closed') {
+        current.closed = value;
+        if (value) {
+          current.hours = 'Fechado';
+        } else {
+          current.hours = '09:00 às 18:00';
+        }
+      } else {
+        const { start, end } = getTimesFromHoursString(current.hours);
+        const newStart = field === 'start' ? value : start;
+        const newEnd = field === 'end' ? value : end;
+        current.hours = `${newStart} às ${newEnd}`;
+        current.closed = false;
+      }
+      
+      updated[index] = current;
+      return updated;
+    });
+  };
 
   const isAdmin = currentUser?.role === UserRole.ADMIN;
 
@@ -160,11 +201,7 @@ export default function SettingsView({
     }
   };
 
-  const handleDayToggle = (day: string) => {
-    setWorkDays(prev => 
-      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
-    );
-  };
+
 
   return (
     <div className="space-y-6" id="settings_view_inner">
@@ -538,62 +575,66 @@ export default function SettingsView({
       )}
 
       {activeTab === 'funcionamento' && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 max-w-xl space-y-6">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 max-w-2xl space-y-6">
           <div>
             <h3 className="text-sm font-bold text-gray-900">Configurar Horário de Funcionamento</h3>
-            <p className="text-xs text-gray-500">Defina o início e fim da jornada diária bem como os dias da semana em que a barbearia abre.</p>
+            <p className="text-xs text-gray-500">Defina o início, fim e fechamento de cada dia da semana. Estas informações serão mostradas aos clientes no portal de agendamentos.</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Horário de Abertura</label>
-              <input
-                type="time"
-                value={openTime}
-                onChange={(e) => setOpenTime(e.target.value)}
-                className="w-full p-2.5 border border-gray-200 text-sm rounded-xl focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-700 mb-1">Horário de Fechamento</label>
-              <input
-                type="time"
-                value={closeTime}
-                onChange={(e) => setCloseTime(e.target.value)}
-                className="w-full p-2.5 border border-gray-200 text-sm rounded-xl focus:outline-none"
-              />
-            </div>
-          </div>
+          <div className="space-y-3 max-h-[420px] overflow-y-auto pr-2">
+            {workingHours.map((wh, idx) => {
+              const { start, end } = getTimesFromHoursString(wh.hours);
+              return (
+                <div key={wh.weekday} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3 rounded-xl border border-gray-100 bg-gray-50/50">
+                  <div className="w-32">
+                    <span className="text-sm font-bold text-gray-800">{wh.weekday}</span>
+                  </div>
+                  
+                  <div className="flex flex-wrap items-center gap-4">
+                    {/* Toggle closed */}
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={wh.closed}
+                        onChange={(e) => handleWorkingHoursChange(idx, 'closed', e.target.checked)}
+                        className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-xs font-semibold text-gray-600">Fechado</span>
+                    </label>
 
-          <div>
-            <label className="block text-xs font-bold text-gray-700 mb-2">Dias de Atendimento</label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'].map(day => {
-                const isActive = workDays.includes(day);
-                return (
-                  <button
-                    key={day}
-                    type="button"
-                    onClick={() => handleDayToggle(day)}
-                    className={`p-2.5 rounded-xl border text-xs font-bold capitalize transition-all ${
-                      isActive
-                        ? 'bg-purple-100 border-purple-300 text-purple-900 shadow-sm'
-                        : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-500'
-                    }`}
-                  >
-                    {day === 'terca' ? 'Terça' : day === 'quarta' ? 'Quarta' : day === 'sabado' ? 'Sábado' : day}
-                  </button>
-                );
-              })}
-            </div>
+                    {!wh.closed && (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="time"
+                          value={start}
+                          onChange={(e) => handleWorkingHoursChange(idx, 'start', e.target.value)}
+                          className="p-1.5 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none"
+                        />
+                        <span className="text-xs text-gray-400">às</span>
+                        <input
+                          type="time"
+                          value={end}
+                          onChange={(e) => handleWorkingHoursChange(idx, 'end', e.target.value)}
+                          className="p-1.5 border border-gray-200 rounded-lg text-xs font-semibold focus:outline-none"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {isAdmin ? (
             <button
               onClick={() => {
-                alert('Grade de horário e dias de expediente atualizados!');
+                onSaveCompanyConfig({
+                  ...companyConfig,
+                  workingHours: workingHours
+                });
+                alert('Grade de horários atualizada com sucesso!');
               }}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md transition-all"
+              className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-2"
             >
               Salvar Expediente
             </button>

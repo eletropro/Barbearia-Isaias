@@ -23,7 +23,7 @@ import {
   XCircle,
   DollarSign
 } from 'lucide-react';
-import { Appointment, Client, Service, User as BarberUser, LoyaltyConfig } from '../types';
+import { Appointment, Client, Service, User as BarberUser, LoyaltyConfig, CompanyConfig } from '../types';
 import { BarberStateEngine } from '../barberState';
 
 interface CustomerPortalViewProps {
@@ -32,6 +32,7 @@ interface CustomerPortalViewProps {
   services: Service[];
   barbers: BarberUser[];
   loyaltyConfig: LoyaltyConfig;
+  companyConfig?: CompanyConfig;
   currentUser?: any;
   onSaveAppointment: (app: any) => void;
   onSaveClient: (client: any) => void;
@@ -44,6 +45,7 @@ export default function CustomerPortalView({
   services,
   barbers,
   loyaltyConfig,
+  companyConfig,
   currentUser,
   onSaveAppointment,
   onSaveClient,
@@ -53,7 +55,8 @@ export default function CustomerPortalView({
   const [portalTab, setPortalTab] = useState<'agendar' | 'meu_perfil'>('agendar');
   
   // Frame Simulation
-  const [deviceFrame, setDeviceFrame] = useState<boolean>(true);
+  const isRealCustomer = currentUser && currentUser.role === 'customer';
+  const [deviceFrame, setDeviceFrame] = useState<boolean>(!isRealCustomer);
 
   // Booking Flow States
   const [step, setStep] = useState<number>(1);
@@ -102,11 +105,58 @@ export default function CustomerPortalView({
     }
   }, [currentUser, clients]);
 
-  const hoursList = [
-    '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-    '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
-    '16:00', '16:30', '17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00'
-  ];
+  const getWeekdayName = (dateStr: string) => {
+    if (!dateStr) return '';
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const dateObj = new Date(year, month - 1, day);
+    const days = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+    return days[dateObj.getDay()];
+  };
+
+  const activeWorkingHour = useMemo(() => {
+    const weekday = getWeekdayName(selectedDate);
+    return companyConfig?.workingHours?.find(h => h.weekday === weekday) || { weekday, hours: '09:00 às 18:00', closed: false };
+  }, [selectedDate, companyConfig]);
+
+  const hoursList = useMemo(() => {
+    if (!activeWorkingHour || activeWorkingHour.closed) return [];
+    
+    const match = activeWorkingHour.hours.match(/(\d{2}):(\d{2})\s*(?:às|to|-)\s*(\d{2}):(\d{2})/i);
+    if (!match) {
+      return [
+        '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
+        '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
+        '15:00', '15:30', '16:00', '16:30', '17:00', '17:30', '18:00'
+      ];
+    }
+    
+    const startHour = parseInt(match[1], 10);
+    const startMin = parseInt(match[2], 10);
+    const endHour = parseInt(match[3], 10);
+    const endMin = parseInt(match[4], 10);
+    
+    const slots: string[] = [];
+    let currentHour = startHour;
+    let currentMin = startMin;
+    
+    while (currentHour < endHour || (currentHour === endHour && currentMin <= endMin)) {
+      const hStr = currentHour.toString().padStart(2, '0');
+      const mStr = currentMin.toString().padStart(2, '0');
+      slots.push(`${hStr}:${mStr}`);
+      
+      currentMin += 30;
+      if (currentMin >= 60) {
+        currentHour += 1;
+        currentMin -= 60;
+      }
+    }
+    
+    if (slots.length > 1 && slots[slots.length - 1] === `${endHour.toString().padStart(2, '0')}:${endMin.toString().padStart(2, '0')}`) {
+      slots.pop();
+    }
+    
+    return slots;
+  }, [activeWorkingHour]);
 
   // Calculate selected services totals
   const selectedServicesObjects = useMemo(() => {
@@ -183,15 +233,24 @@ export default function CustomerPortalView({
     }
 
     // 1. Look up client or Register client
-    const cleanPhone = custPhone.replace(/\D/g, '');
-    let clientObj = clients.find(c => c.phone.replace(/\D/g, '') === cleanPhone);
+    let clientObj = null;
+
+    if (currentUser && currentUser.role === 'customer') {
+      clientObj = clients.find(c => c.id === `cli_${currentUser.id}` || (c.email && c.email.toLowerCase() === currentUser.email.toLowerCase()));
+    }
+
+    if (!clientObj) {
+      const cleanPhone = custPhone.replace(/\D/g, '');
+      clientObj = clients.find(c => c.phone.replace(/\D/g, '') === cleanPhone);
+    }
 
     if (!clientObj) {
       // Create new client in local storage state
       const newClient = {
+        id: currentUser?.role === 'customer' ? `cli_${currentUser.id}` : undefined,
         name: custName,
         phone: custPhone,
-        email: custEmail || `${cleanPhone}@cliente.com`,
+        email: custEmail || (currentUser?.email) || `${custPhone.replace(/\D/g, '')}@cliente.com`,
         cpfCnpj: custCpf,
         birthDate: '',
         address: '',
@@ -217,7 +276,7 @@ export default function CustomerPortalView({
 
     // 2. Schedule Appointment
     const newAppointment = {
-      clientId: clientObj?.id || `cust_${Date.now()}`,
+      clientId: clientObj?.id || (currentUser?.role === 'customer' ? `cli_${currentUser.id}` : `cust_${Date.now()}`),
       clientName: custName,
       clientPhone: custPhone,
       barberId: targetBarber.id,
@@ -291,31 +350,33 @@ export default function CustomerPortalView({
   return (
     <div className="space-y-6" id="customer_portal_root">
       {/* Upper Information Banner */}
-      <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
-            <Smartphone className="h-5 w-5 text-purple-600" />
-            Aplicativo de Agendamento do Cliente
-          </h2>
-          <p className="text-sm text-gray-500">
-            Esta tela representa o aplicativo ou link direto que seus clientes utilizam para realizar agendamentos integrados, consultar fidelidade e acompanhar o histórico de visitas em tempo real.
-          </p>
-        </div>
+      {!isRealCustomer && (
+        <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-extrabold text-gray-900 flex items-center gap-2">
+              <Smartphone className="h-5 w-5 text-purple-600" />
+              Aplicativo de Agendamento do Cliente
+            </h2>
+            <p className="text-sm text-gray-500">
+              Esta tela representa o aplicativo ou link direto que seus clientes utilizam para realizar agendamentos integrados, consultar fidelidade e acompanhar o histórico de visitas em tempo real.
+            </p>
+          </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-gray-400">Visualização:</span>
-          <button
-            onClick={() => setDeviceFrame(!deviceFrame)}
-            className={`px-3 py-1.5 text-xs font-bold rounded-xl border transition-all ${
-              deviceFrame 
-                ? 'bg-purple-100 border-purple-200 text-purple-700' 
-                : 'bg-gray-50 border-gray-200 text-gray-600'
-            }`}
-          >
-            {deviceFrame ? 'Visualização Mobile' : 'Tela Cheia (Responsivo)'}
-          </button>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-gray-400">Visualização:</span>
+            <button
+              onClick={() => setDeviceFrame(!deviceFrame)}
+              className={`px-3 py-1.5 text-xs font-bold rounded-xl border transition-all ${
+                deviceFrame 
+                  ? 'bg-purple-100 border-purple-200 text-purple-700' 
+                  : 'bg-gray-50 border-gray-200 text-gray-600'
+              }`}
+            >
+              {deviceFrame ? 'Visualização Mobile' : 'Tela Cheia (Responsivo)'}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Grid View */}
       <div className={deviceFrame ? 'flex justify-center items-center py-4 bg-slate-100/50 rounded-3xl border border-slate-200' : 'w-full'}>
@@ -781,27 +842,37 @@ export default function CustomerPortalView({
               ) : (
                 /* TAB 2: MY FIDELITY AND SCHEDULING HISTORY */
                 <div className="space-y-4 animate-in fade-in duration-200">
-                  <div>
-                    <h3 className="text-sm font-extrabold text-gray-900">Consulta de Fidelidade</h3>
-                    <p className="text-[11px] text-gray-400">Informe seu WhatsApp para consultar seu saldo de pontos, cashback e agendamentos.</p>
-                  </div>
+                  {/* Hide search field for logged-in real customer */}
+                  {!isRealCustomer ? (
+                    <>
+                      <div>
+                        <h3 className="text-sm font-extrabold text-gray-900">Consulta de Fidelidade</h3>
+                        <p className="text-[11px] text-gray-400">Informe seu WhatsApp para consultar seu saldo de pontos, cashback e agendamentos.</p>
+                      </div>
 
-                  <form onSubmit={handleSearchLoyalty} className="flex gap-2">
-                    <input
-                      type="tel"
-                      required
-                      placeholder="Ex: (11) 99999-8888"
-                      value={searchPhone}
-                      onChange={(e) => setSearchPhone(e.target.value)}
-                      className="flex-1 p-2.5 border border-gray-200 text-xs rounded-xl focus:outline-none bg-white font-semibold shadow-sm"
-                    />
-                    <button
-                      type="submit"
-                      className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 text-xs font-bold rounded-xl shadow-sm transition-all flex items-center justify-center"
-                    >
-                      <Search className="h-4 w-4" />
-                    </button>
-                  </form>
+                      <form onSubmit={handleSearchLoyalty} className="flex gap-2">
+                        <input
+                          type="tel"
+                          required
+                          placeholder="Ex: (11) 99999-8888"
+                          value={searchPhone}
+                          onChange={(e) => setSearchPhone(e.target.value)}
+                          className="flex-1 p-2.5 border border-gray-200 text-xs rounded-xl focus:outline-none bg-white font-semibold shadow-sm"
+                        />
+                        <button
+                          type="submit"
+                          className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-2 text-xs font-bold rounded-xl shadow-sm transition-all flex items-center justify-center"
+                        >
+                          <Search className="h-4 w-4" />
+                        </button>
+                      </form>
+                    </>
+                  ) : (
+                    <div className="pb-2 border-b border-gray-100">
+                      <h3 className="text-sm font-extrabold text-gray-900">Olá, {custName}!</h3>
+                      <p className="text-[11px] text-gray-400">Aqui está o seu painel de fidelidade, saldo e histórico de agendamentos em tempo real.</p>
+                    </div>
+                  )}
 
                   {hasSearched && searchedClient ? (
                     <div className="space-y-4 animate-in slide-in-from-top-2 duration-250">
@@ -904,23 +975,25 @@ export default function CustomerPortalView({
       </div>
 
       {/* Visual walkthrough instructions card */}
-      <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-lg grid grid-cols-1 md:grid-cols-3 gap-6 text-xs leading-relaxed">
-        <div className="space-y-2">
-          <div className="h-8 w-8 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center font-extrabold">1</div>
-          <h4 className="font-bold text-purple-300">Reserva de Horários Automatizada</h4>
-          <p className="text-gray-400">O cliente seleciona um ou mais serviços, o profissional preferido e o dia. O sistema calcula a disponibilidade com base nas agendas de cada cadeira da barbearia.</p>
+      {!isRealCustomer && (
+        <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-lg grid grid-cols-1 md:grid-cols-3 gap-6 text-xs leading-relaxed">
+          <div className="space-y-2">
+            <div className="h-8 w-8 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center font-extrabold">1</div>
+            <h4 className="font-bold text-purple-300">Reserva de Horários Automatizada</h4>
+            <p className="text-gray-400">O cliente seleciona um ou mais serviços, o profissional preferido e o dia. O sistema calcula a disponibilidade com base nas agendas de cada cadeira da barbearia.</p>
+          </div>
+          <div className="space-y-2">
+            <div className="h-8 w-8 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center font-extrabold">2</div>
+            <h4 className="font-bold text-purple-300">Integração do Cadastro em CRM</h4>
+            <p className="text-gray-400">Ao preencher os dados de contato, o sistema cruza as informações. Se o cliente já existia, ele apenas agenda. Se for novo, ele é automaticamente credenciado no banco de dados.</p>
+          </div>
+          <div className="space-y-2">
+            <div className="h-8 w-8 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center font-extrabold">3</div>
+            <h4 className="font-bold text-purple-300">Consulta de Fidelidade & Cashback</h4>
+            <p className="text-gray-400">O cliente pode consultar o cartão fidelidade digital dele instantaneamente, vendo sua pontuação e saldo cashback acumulado em tempo real direto pela tela simulação do app.</p>
+          </div>
         </div>
-        <div className="space-y-2">
-          <div className="h-8 w-8 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center font-extrabold">2</div>
-          <h4 className="font-bold text-purple-300">Integração do Cadastro em CRM</h4>
-          <p className="text-gray-400">Ao preencher os dados de contato, o sistema cruza as informações. Se o cliente já existia, ele apenas agenda. Se for novo, ele é automaticamente credenciado no banco de dados.</p>
-        </div>
-        <div className="space-y-2">
-          <div className="h-8 w-8 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center font-extrabold">3</div>
-          <h4 className="font-bold text-purple-300">Consulta de Fidelidade & Cashback</h4>
-          <p className="text-gray-400">O cliente pode consultar o cartão fidelidade digital dele instantaneamente, vendo sua pontuação e saldo cashback acumulado em tempo real direto pela tela simulação do app.</p>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
